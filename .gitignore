@@ -1,0 +1,6 @@
+# Verteil-Paket (gehört in GitHub-Releases, nicht ins Repo)
+*.zip
+
+# Zwischenstände der Anleitung
+guide/*.html.bak
+guide/Anleitung.html

@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Controller Overlay für OBS – Einrichtungsanleitung</title>
+<style>
+  @page { size: A4; margin: 16mm 15mm 16mm 15mm; }
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  :root {
+    --ink: #1d2129; --muted: #5b6270; --line: #dde1e7; --soft: #f3f5f8;
+    --brand: #0a8fb8; --brand-soft: #e3f4fa; --mark: #ff7a1a; --warn-soft: #fff4e5; --warn: #b85c00;
+  }
+  html { background: #fff; }
+  body { margin: 0; color: var(--ink); font: 10.5pt/1.5 "Segoe UI", system-ui, sans-serif; }
+  h1 { font-size: 26pt; line-height: 1.15; margin: 0 0 6pt; letter-spacing: -0.3pt; }
+  h2 { font-size: 15pt; margin: 0 0 8pt; display: flex; align-items: center; gap: 9pt; }
+  h3 { font-size: 11.5pt; margin: 14pt 0 4pt; }
+  p { margin: 0 0 7pt; }
+  ul, ol { margin: 0 0 8pt; padding-left: 16pt; }
+  li { margin: 0 0 3pt; }
+  code, .k { font-family: "Cascadia Mono", Consolas, monospace; font-size: 9.5pt; background: var(--soft); border: 1px solid var(--line); border-radius: 3pt; padding: 0 3pt; }
+  b { font-weight: 650; }
+  .page { break-after: page; }
+  .page:last-child { break-after: auto; }
+  .num { flex: none; width: 22pt; height: 22pt; border-radius: 50%; background: var(--brand); color: #fff; font-size: 11pt; display: inline-flex; align-items: center; justify-content: center; }
+  .lead { font-size: 12pt; color: var(--muted); margin-bottom: 12pt; }
+  .step { margin-bottom: 16pt; break-inside: avoid; }
+  .note { background: var(--brand-soft); border-left: 3pt solid var(--brand); padding: 7pt 10pt; border-radius: 0 4pt 4pt 0; margin: 8pt 0; break-inside: avoid; }
+  .warn { background: var(--warn-soft); border-left: 3pt solid var(--mark); padding: 7pt 10pt; border-radius: 0 4pt 4pt 0; margin: 8pt 0; break-inside: avoid; }
+  .warn b:first-child, .note b:first-child { display: block; margin-bottom: 2pt; }
+  figure { margin: 8pt 0 4pt; break-inside: avoid; }
+  figcaption { font-size: 9pt; color: var(--muted); margin-top: 5pt; }
+  .m { display: inline-flex; align-items: center; justify-content: center; width: 15pt; height: 15pt; border-radius: 50%; background: var(--mark); color: #fff; font: 700 8.5pt "Segoe UI", sans-serif; flex: none; vertical-align: middle; box-shadow: 0 0 0 2pt rgba(255,122,26,.25); }
+  .row { display: flex; gap: 12pt; align-items: flex-start; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10pt; }
+  table { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin: 6pt 0 10pt; }
+  th, td { text-align: left; vertical-align: top; padding: 5pt 7pt; border-bottom: 1px solid var(--line); }
+  th { background: var(--soft); font-weight: 650; }
+
+  /* Titelseite */
+  .cover { display: flex; flex-direction: column; min-height: 250mm; }
+  .tag { align-self: flex-start; display: inline-block; font-size: 9pt; font-weight: 600; color: var(--brand); background: var(--brand-soft); padding: 2pt 8pt; border-radius: 10pt; margin-bottom: 12pt; }
+  .hero { background: linear-gradient(160deg, #1b2a3a, #0e1620); border-radius: 10pt; padding: 18pt 26pt; margin: 14pt 0 16pt; }
+  .hero img { width: 78%; display: block; margin: 0 auto; }
+  .need { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10pt; margin-top: 4pt; }
+  .need div { border: 1px solid var(--line); border-radius: 6pt; padding: 8pt 10pt; font-size: 9.5pt; }
+  .need b { display: block; font-size: 10pt; margin-bottom: 2pt; }
+  .toc { margin-top: auto; border-top: 1px solid var(--line); padding-top: 10pt; font-size: 9.5pt; color: var(--muted); display: grid; grid-template-columns: repeat(5, auto); gap: 4pt 14pt; justify-content: start; }
+  .toc span b { color: var(--ink); }
+
+  /* Nachgezeichnete OBS-Fenster */
+  .win { background: #272a33; color: #dfe2e8; border: 1px solid #3d414d; border-radius: 6pt; font: 9pt "Segoe UI", sans-serif; overflow: hidden; box-shadow: 0 3pt 10pt rgba(0,0,0,.18); }
+  .win .tb { background: #1f2129; padding: 5pt 9pt; font-size: 8.5pt; color: #b9bec9; display: flex; justify-content: space-between; border-bottom: 1px solid #353946; }
+  .win .tb i { font-style: normal; letter-spacing: 4pt; color: #7d8391; }
+  .win .bd { padding: 9pt; }
+  .menubar { display: flex; gap: 2pt; background: #1f2129; padding: 3pt 6pt; border-bottom: 1px solid #353946; }
+  .menubar span { padding: 3pt 7pt; border-radius: 3pt; color: #c9cdd6; }
+  .menubar .act { background: #3a5a8c; color: #fff; }
+  .dropdown { position: absolute; background: #2f323c; border: 1px solid #4a4f5c; border-radius: 4pt; padding: 4pt 0; min-width: 150pt; box-shadow: 0 4pt 12pt rgba(0,0,0,.35); }
+  .dropdown div { padding: 4pt 12pt; display: flex; align-items: center; justify-content: space-between; gap: 8pt; }
+  .dropdown .hl { background: #3a5a8c; color: #fff; }
+  .ph { display: inline-block; height: 6pt; border-radius: 3pt; background: #4a4f5c; }
+  .btnx { display: inline-flex; align-items: center; justify-content: center; min-width: 20pt; height: 18pt; padding: 0 7pt; background: #3b3f4b; border: 1px solid #50566400; border-radius: 3pt; color: #e6e8ec; font-size: 9pt; }
+  .btnx.pri { background: #3a5a8c; }
+  .field { background: #1c1e25; border: 1px solid #454a57; border-radius: 3pt; padding: 3pt 6pt; color: #f0f2f5; min-height: 17pt; display: flex; align-items: center; justify-content: space-between; }
+  .field .caret { color: #8b919e; font-size: 7pt; }
+  .frow { display: grid; grid-template-columns: 100pt 1fr; gap: 6pt; align-items: center; margin-bottom: 5pt; }
+  .frow > span:first-child { text-align: right; color: #b9bec9; }
+  .chk { display: inline-flex; width: 11pt; height: 11pt; border: 1px solid #6b7180; border-radius: 2pt; background: #1c1e25; align-items: center; justify-content: center; font-size: 8pt; color: #fff; vertical-align: middle; margin-right: 4pt; }
+  .chk.on { background: #3a5a8c; border-color: #3a5a8c; }
+  .list { background: #1c1e25; border: 1px solid #454a57; border-radius: 3pt; min-height: 80pt; padding: 3pt; }
+  .list div { padding: 3pt 6pt; border-radius: 2pt; }
+  .list .sel { background: #3a5a8c; color: #fff; }
+  .rel { position: relative; }
+  .abs { position: absolute; }
+  .tabs { display: flex; gap: 2pt; margin-bottom: 6pt; border-bottom: 1px solid #3d414d; }
+  .tabs span { padding: 3pt 9pt; color: #9aa0ad; }
+  .tabs .on { color: #fff; border-bottom: 2px solid #5b8fd9; }
+  .swatch { width: 26pt; height: 13pt; border-radius: 2pt; display: inline-block; vertical-align: middle; border: 1px solid #000; }
+  .desc { font-size: 8.5pt; color: #c3c7d0; border-bottom: 1px solid #3d414d; padding-bottom: 6pt; margin-bottom: 7pt; }
+  .desc b { color: #fff; font-size: 9.5pt; }
+  .dock { width: 190pt; }
+  .dock .hd { background: #1f2129; padding: 4pt 8pt; font-weight: 600; border-bottom: 1px solid #353946; }
+  .dock .bar { display: flex; gap: 4pt; padding: 4pt 6pt; border-top: 1px solid #353946; background: #22252d; }
+
+  .gal figure { margin: 0; }
+  .gal .pv { background: #5a5f69; border-radius: 6pt; padding: 8pt 12pt; }
+  .gal .pv.dark { background: linear-gradient(160deg, #3c4656, #232a35); }
+  .gal .pv.light { background: linear-gradient(160deg, #6f7f93, #4b586a); }
+  .gal img { width: 100%; display: block; }
+  .scene { position: relative; border-radius: 6pt; overflow: hidden; height: 190pt;
+    background: radial-gradient(ellipse at 70% 30%, #6c4b2c 0%, transparent 55%), radial-gradient(ellipse at 20% 80%, #1f3d4f 0%, transparent 60%), linear-gradient(170deg, #2c3442, #11151c); }
+  .scene .hud { position: absolute; left: 12pt; top: 10pt; color: #fff; font-weight: 700; font-size: 10pt; opacity: .85; }
+  .scene .hp { position: absolute; left: 12pt; top: 28pt; width: 120pt; height: 7pt; background: rgba(255,255,255,.18); border-radius: 4pt; }
+  .scene .hp::after { content: ""; position: absolute; inset: 0 30% 0 0; background: #e8463a; border-radius: 4pt; }
+  .scene img { position: absolute; right: 12pt; bottom: 8pt; width: 165pt; }
+  .faq { break-inside: avoid; margin-bottom: 9pt; }
+  .faq h3 { margin: 0 0 2pt; }
+  .footer { margin-top: 14pt; font-size: 8.5pt; color: var(--muted); border-top: 1px solid var(--line); padding-top: 6pt; }
+  /* Schritt 3 – Teilschritte */
+  .sub { margin-bottom: 14pt; break-inside: avoid; }
+  .sub h3 { display: flex; align-items: center; gap: 7pt; font-size: 12pt; margin: 6pt 0 6pt; }
+  .sn { flex: none; background: var(--brand-soft); color: var(--brand); font-weight: 700; font-size: 9.5pt; padding: 2pt 7pt; border-radius: 9pt; }
+  .obsmain .preview { height: 92pt; background: #0f1014; margin: 6pt; border-radius: 3pt; display: flex; align-items: center; justify-content: center; color: #4d5260; font-size: 9pt; }
+  .docks { display: grid; grid-template-columns: 1fr 1.25fr 1.1fr 1fr 1fr; gap: 5pt; padding: 0 6pt 6pt; }
+  .dk { background: #22252d; border: 1px solid #3d414d; border-radius: 3pt; display: flex; flex-direction: column; min-height: 98pt; }
+  .dk .hd { background: #1f2129; padding: 3pt 6pt; font-weight: 600; font-size: 8.5pt; border-bottom: 1px solid #353946; }
+  .dk .items { flex: 1; padding: 4pt 5pt; font-size: 8.5pt; color: #c3c7d0; display: flex; flex-direction: column; gap: 3pt; }
+  .dk .items .sel { background: #3a5a8c; color: #fff; border-radius: 2pt; padding: 1pt 4pt; margin: 0 -4pt; display: flex; justify-content: space-between; align-items: center; }
+  .dk .bar { display: flex; gap: 3pt; padding: 3pt 4pt; border-top: 1px solid #353946; align-items: center; }
+  .dk.hot { outline: 2.5pt solid var(--mark); outline-offset: 1pt; }
+  .btnx.sm { min-width: 15pt; height: 14pt; padding: 0 5pt; font-size: 8.5pt; }
+  .btnx.w { width: 100%; white-space: nowrap; font-size: 7.5pt; padding: 0 3pt; }
+  .btnx.hotbtn { background: var(--mark); color: #fff; font-weight: 700; }
+  .meter { height: 5pt; border-radius: 2pt; background: linear-gradient(90deg, #3bb36b 0 55%, #3d414d 55%); }
+  .dropdown.static { position: static; box-shadow: none; border: 0; min-width: 0; }
+  .radio { display: inline-block; width: 10pt; height: 10pt; border-radius: 50%; border: 1px solid #6b7180; background: #1c1e25; vertical-align: middle; margin-right: 5pt; }
+  .radio.on { background: radial-gradient(circle, #5b8fd9 0 38%, #1c1e25 42%); border-color: #5b8fd9; }
+  .propprev { background: #0f1014; border-radius: 3pt; height: 78pt; display: flex; align-items: center; justify-content: center; margin-bottom: 8pt; }
+  .propprev img { height: 72pt; }
+  .field.hotfield { outline: 2pt solid var(--mark); outline-offset: 1pt; }
+  .frow.dim { opacity: .55; }
+  table.steps td { padding: 6pt 7pt; }
+  table.steps td:first-child { width: 24pt; }
+  table.steps td:nth-child(2) { width: 90pt; }
+  .scene.big { height: 215pt; border-radius: 0; }
+  .selbox { position: absolute; right: 14pt; bottom: 10pt; width: 190pt; height: 133pt; outline: 1.5pt solid #e0352b; }
+  .selbox img { position: static; width: 100%; height: 100%; }
+  .selbox .h { position: absolute; width: 6pt; height: 6pt; background: #e0352b; }
+  .selbox .tl { left: -3pt; top: -3pt; } .selbox .tr { right: -3pt; top: -3pt; }
+  .selbox .bl { left: -3pt; bottom: -3pt; } .selbox .br { right: -3pt; bottom: -3pt; }
+  .selbox .mv { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%); }
+  .selbox .rs { position: absolute; right: -9pt; bottom: -9pt; }
+  /* Schritt 1 – Windows-Explorer (hell) */
+  .win.light { background: #fbfbfc; color: #1f2328; border-color: #c9ced6; }
+  .win.light .tb { background: #eef0f3; color: #3b4048; border-bottom-color: #d8dce2; }
+  .win.light .tb i { color: #8a909a; }
+  .exp { display: flex; height: 124pt; }
+  .exp .side { width: 72pt; border-right: 1px solid #e1e4e8; padding: 5pt 0; font-size: 8.5pt; color: #3b4048; }
+  .exp .side div { padding: 3pt 9pt; }
+  .exp .side .sel { background: #dbe8f7; }
+  .files { flex: 1; padding: 5pt 7pt; display: flex; flex-direction: column; gap: 3pt; font-size: 9pt; }
+  .file { display: flex; align-items: center; gap: 6pt; padding: 3pt 5pt; border-radius: 3pt; }
+  .file.hl { background: #cce4ff; outline: 1px solid #8fbff5; }
+  .zip, .pdf, .luaico { flex: none; width: 13pt; height: 15pt; border-radius: 2pt; position: relative; }
+  .zip { background: repeating-linear-gradient(180deg, #e8b23a 0 3pt, #c98d12 3pt 5pt); }
+  .pdf { background: #d9382e; } .pdf::after { content: "PDF"; position: absolute; inset: auto 0 1pt 0; color: #fff; font: 700 5pt sans-serif; text-align: center; }
+  .luaico { background: #2c3e93; } .luaico::after { content: "LUA"; position: absolute; inset: auto 0 1pt 0; color: #fff; font: 700 5pt sans-serif; text-align: center; }
+  .ph.l { background: #dfe2e7; }
+  .dropdown.lightdd { background: #fff; border-color: #c9ced6; color: #1f2328; box-shadow: 0 4pt 12pt rgba(0,0,0,.18); }
+  .dropdown.lightdd .hl { background: #dbe8f7; color: #1f2328; }
+  .field.light { background: #fff; border-color: #9aa2ad; color: #1f2328; }
+  .btnx.light { background: #f0f1f3; border: 1px solid #b9bfc8; color: #1f2328; }
+  .btnx.light.pri { background: #1f6fd1; border-color: #1f6fd1; color: #fff; }
+  .chk.lighton { background: #1f6fd1; border-color: #1f6fd1; }
+  .addr { padding: 4pt 9pt; font-size: 8.5pt; color: #3b4048; border-bottom: 1px solid #e1e4e8; background: #f6f7f9; }
+</style>
+</head>
+<body>
+
+<!-- ============================ SEITE 1: TITEL ============================ -->
+<section class="page cover">
+  <span class="tag">Einrichtungsanleitung</span>
+  <h1>Controller Overlay für OBS</h1>
+  <p class="lead">Zeigt deinen Xbox-, PS5- oder Switch-2-Controller im Stream und hebt jede Taste in Echtzeit hervor, solange du sie drückst. Es funktioniert auch, während das Spiel im Vordergrund läuft.</p>
+
+  <div class="hero"><img src="{{HERO}}" alt="Overlay mit hervorgehobenen Tasten"></div>
+
+  <h3>Das brauchst du</h3>
+  <div class="need">
+    <div><b>Windows-PC</b>Windows 10 oder 11</div>
+    <div><b>OBS Studio</b>eine aktuelle Version; Skripte sind bereits eingebaut</div>
+    <div><b>Controller</b>Xbox-Controller, PS5 DualSense (USB oder Bluetooth) oder Switch 2 Pro Controller (USB-Kabel)</div>
+  </div>
+  <p style="margin-top:10pt">Dazu die Datei <code>ControllerOverlay.zip</code>. Keine Installation, kein Zusatzprogramm, keine Startparameter.</p>
+
+  <div class="toc">
+    <span><b>1</b> ZIP entpacken</span>
+    <span><b>2</b> Skript laden</span>
+    <span><b>3</b> Browser-Quelle</span>
+    <span><b>4</b> Aussehen einstellen</span>
+    <span><b>5</b> Fehlerbehebung</span>
+  </div>
+</section>
+
+<!-- ============================ SEITE 2: SCHRITT 1 ============================ -->
+<section class="page">
+  <div class="step">
+    <h2><span class="num">1</span>ZIP-Datei entpacken</h2>
+    <p>Du hast die Datei <code>ControllerOverlay.zip</code> bekommen. Darin stecken zwei Dateien: das Overlay-Skript <code>xbox-controller-overlay.lua</code> und diese Anleitung. Bevor OBS das Skript nutzen kann, musst du die ZIP-Datei entpacken.</p>
+
+    <div class="warn"><b>Wichtig: nicht direkt aus der ZIP-Datei öffnen</b>Windows zeigt den Inhalt einer ZIP-Datei wie einen normalen Ordner an. Lädst du das Skript von dort in OBS, funktioniert es nicht dauerhaft.</div>
+
+    <div class="sub">
+      <h3><span class="sn">1.1</span>ZIP-Datei finden</h3>
+      <p>Hast du die Datei aus dem Internet oder aus einer E-Mail heruntergeladen, liegt sie meistens im Ordner <b>Downloads</b>. Öffne den <b>Explorer</b> (Ordner-Symbol in der Taskleiste oder <span class="k">Windows</span> + <span class="k">E</span>) und klicke links auf <b>Downloads</b>.</p>
+    </div>
+
+    <div class="sub">
+      <h3><span class="sn">1.2</span>Rechtsklick → „Alle extrahieren…“</h3>
+      <div class="row" style="gap:14pt; align-items:flex-start">
+        <figure style="margin:0; flex:none">
+          <div class="win light rel" style="width:255pt; height:150pt">
+            <div class="tb"><span>Downloads</span><i>— ▢ ✕</i></div>
+            <div class="exp">
+              <div class="side"><div>Desktop</div><div class="sel">Downloads</div><div>Dokumente</div><div>Bilder</div></div>
+              <div class="files"><div class="file hl"><span class="zip"></span>ControllerOverlay.zip <span class="m">1</span></div><div class="file"><span class="ph l" style="width:80pt"></span></div><div class="file"><span class="ph l" style="width:60pt"></span></div></div>
+            </div>
+            <div class="dropdown lightdd" style="left:118pt; top:52pt; min-width:120pt">
+              <div><span>Öffnen</span></div>
+              <div class="hl"><span>Alle extrahieren…</span><span class="m">2</span></div>
+              <div><span class="ph l" style="width:60pt"></span></div>
+              <div><span class="ph l" style="width:75pt"></span></div>
+            </div>
+          </div>
+        </figure>
+        <ol style="margin-top:2pt">
+          <li>Klicke mit der <b>rechten</b> Maustaste auf <code>ControllerOverlay.zip</code> <span class="m">1</span>.</li>
+          <li>Wähle <b>Alle extrahieren…</b> <span class="m">2</span>.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ SEITE: SCHRITT 1 (Teil 2) ============================ -->
+<section class="page">
+  <div class="step">
+    <div class="sub">
+      <h3><span class="sn">1.3</span>Zielordner wählen und entpacken</h3>
+      <p>Es öffnet sich ein Fenster, in dem du festlegst, <b>wohin</b> die Dateien kommen. OBS lädt das Skript künftig von dort, der Ordner muss also dauerhaft bestehen bleiben.</p>
+      <figure>
+        <div class="win light">
+          <div class="tb"><span>ZIP-komprimierte Ordner extrahieren</span><i>✕</i></div>
+          <div class="bd">
+            <div style="font-size:10.5pt; color:#1d4f91; margin-bottom:8pt">Wählen Sie ein Ziel aus, und extrahieren Sie die Dateien</div>
+            <div style="margin-bottom:3pt">Dateien werden in diesem Ordner extrahiert:</div>
+            <div style="display:flex; gap:6pt; align-items:center; margin-bottom:8pt">
+              <span class="field light hotfield" style="flex:1">C:\Users\DeinName\Documents\OBS\ControllerOverlay<span class="m">3</span></span>
+              <span class="btnx light">Durchsuchen…</span>
+            </div>
+            <div style="margin-bottom:10pt"><span class="chk lighton">✓</span>Dateien nach Extrahierung anzeigen</div>
+            <div style="display:flex; gap:6pt; justify-content:flex-end; align-items:center"><span class="btnx light pri">Extrahieren</span><span class="m">4</span><span class="btnx light">Abbrechen</span></div>
+          </div>
+        </div>
+        <figcaption>Das Fenster zum Entpacken in Windows. „DeinName“ steht bei dir für deinen Windows-Benutzernamen.</figcaption>
+      </figure>
+      <ol>
+        <li>Windows schlägt als Ziel den Ordner <b>Downloads</b> vor. Ändere das, zum Beispiel in deinen Ordner <b>Dokumente</b> <span class="m">3</span>. Am einfachsten klickst du in das Feld und ersetzt <code>Downloads</code> durch <code>Documents\OBS</code>.<br>
+          <span style="color:var(--muted); font-size:9.5pt">Alternativ: <b>Durchsuchen…</b> klicken, links <b>Dokumente</b> wählen und mit <b>Ordner auswählen</b> bestätigen.</span></li>
+        <li>Der Haken bei <b>Dateien nach Extrahierung anzeigen</b> bleibt gesetzt.</li>
+        <li>Klicke auf <b>Extrahieren</b> <span class="m">4</span>.</li>
+      </ol>
+    </div>
+
+    <div class="sub">
+      <h3><span class="sn">1.4</span>Ergebnis prüfen</h3>
+      <div class="row" style="gap:14pt; align-items:flex-start">
+        <figure style="margin:0; flex:none">
+          <div class="win light" style="width:255pt">
+            <div class="tb"><span>ControllerOverlay</span><i>— ▢ ✕</i></div>
+            <div class="addr">Dokumente › OBS › ControllerOverlay</div>
+            <div class="files" style="padding:6pt 8pt">
+              <div class="file"><span class="pdf"></span>Controller-Overlay-Anleitung.pdf</div>
+              <div class="file hl"><span class="luaico"></span>xbox-controller-overlay.lua <span class="m">5</span></div>
+            </div>
+          </div>
+        </figure>
+        <div>
+          <p>Danach öffnet sich der neue Ordner mit den zwei Dateien. Die Datei <code>xbox-controller-overlay.lua</code> <span class="m">5</span> brauchst du im nächsten Schritt.</p>
+          <p style="color:var(--muted); font-size:9.5pt">Zeigt Windows die Datei nur als „xbox-controller-overlay“ ohne „.lua“? Das ist normal, Windows blendet Dateiendungen oft aus.</p>
+          <p style="color:var(--muted); font-size:9.5pt">Die ZIP-Datei im Ordner Downloads kannst du danach löschen.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ SEITE: SCHRITT 2 ============================ -->
+<section class="page">
+  <div class="step">
+    <h2><span class="num">2</span>Skript in OBS laden</h2>
+    <p>Öffne in OBS oben im Menü <b>Werkzeuge</b> <span class="m">1</span> und dann <b>Skripte</b> <span class="m">2</span>.</p>
+
+    <figure>
+      <div class="win rel" style="height:104pt">
+        <div class="tb"><span>OBS Studio</span><i>— ▢ ✕</i></div>
+        <div class="menubar">
+          <span>Datei</span><span>Bearbeiten</span><span>Ansicht</span><span>Docks</span><span>Profil</span><span>Szenensammlung</span>
+          <span class="act">Werkzeuge <span class="m" style="margin-left:4pt">1</span></span><span>Hilfe</span>
+        </div>
+        <div class="dropdown" style="left:252pt; top:44pt">
+          <div><span class="ph" style="width:110pt"></span></div>
+          <div class="hl"><span>Skripte</span><span class="m">2</span></div>
+          <div><span class="ph" style="width:95pt"></span></div>
+        </div>
+      </div>
+      <figcaption>Das Menü „Werkzeuge“ in der Menüleiste von OBS. Die Einträge können je nach installierten Plugins anders aussehen.</figcaption>
+    </figure>
+
+    <p style="margin-top:10pt">Im Fenster <b>Skripte</b> klickst du unten links auf <b>+</b> <span class="m">3</span> und wählst die Datei <code>xbox-controller-overlay.lua</code> aus dem Ordner von Schritt 1, also zum Beispiel <b>Dokumente → OBS → ControllerOverlay</b>. Danach erscheint sie in der Liste <span class="m">4</span>, und rechts siehst du die Beschreibung und die Einstellungen <span class="m">5</span>.</p>
+
+    <figure>
+      <div class="win">
+        <div class="tb"><span>Skripte</span><i>✕</i></div>
+        <div class="bd">
+          <div class="tabs"><span class="on">Skripte</span><span>Python-Einstellungen</span></div>
+          <div class="row">
+            <div style="width:150pt">
+              <div style="color:#b9bec9; margin-bottom:3pt">Geladene Skripte</div>
+              <div class="list" style="min-height:110pt"><div class="sel">xbox-controller-overlay.lua <span class="m" style="margin-left:3pt">4</span></div></div>
+              <div style="display:flex; gap:4pt; margin-top:5pt; align-items:center">
+                <span class="btnx">+</span><span class="m">3</span><span class="btnx">−</span><span class="btnx">⟳</span>
+              </div>
+              <div style="margin-top:5pt"><span class="btnx" style="width:100%">Skript-Protokoll</span></div>
+            </div>
+            <div style="flex:1">
+              <div class="desc"><b>Controller Overlay (Xbox, PS5 &amp; Switch 2)</b> <span class="m" style="margin-left:3pt">5</span><br>Zeigt den Controller mit allen Eingaben in Echtzeit … URL <b>http://localhost:8790</b> …</div>
+              <div class="frow"><span>Controller</span><span class="field">Automatisch (zuletzt benutzter Controller)<span class="caret">▼</span></span></div>
+              <div class="frow"><span></span><span class="btnx">Controller-Liste aktualisieren</span></div>
+              <div class="frow"><span>Controller-Layout</span><span class="field">Automatisch (erkennt den Controller)<span class="caret">▼</span></span></div>
+              <div class="frow"><span>Farbvariante</span><span class="field">Dunkel<span class="caret">▼</span></span></div>
+              <div class="frow"><span>Leuchtfarbe</span><span><span class="swatch" style="background:#00e5ff"></span> <span class="btnx">Farbe auswählen</span></span></div>
+              <div class="frow"><span>Deckkraft</span><span style="display:flex; align-items:center; gap:6pt"><span style="flex:1; height:4pt; border-radius:2pt; background:#5a8dee; position:relative"><span style="position:absolute; right:-5pt; top:-4pt; width:11pt; height:11pt; border-radius:50%; background:#e6e9ee"></span></span><span class="field" style="width:52pt">100 %</span></span></div>
+              <div class="frow"><span></span><span><span class="chk on">✓</span>Hinweis anzeigen, wenn kein Controller verbunden ist</span></div>
+              <div class="frow"><span>Port</span><span class="field" style="width:70pt">8790</span></div>
+            </div>
+          </div>
+          <div style="text-align:right; margin-top:6pt"><span class="btnx">Schließen</span></div>
+        </div>
+      </div>
+      <figcaption>Das Fenster „Skripte“ mit geladenem Overlay-Skript und seinen Einstellungen.</figcaption>
+    </figure>
+    <p>Das Fenster kannst du danach schließen. Das Skript läuft ab jetzt bei jedem Start von OBS automatisch mit.</p>
+  </div>
+</section>
+
+<!-- ============================ SEITE 3: SCHRITT 3 (Teil 1) ============================ -->
+<section class="page">
+  <h2><span class="num">3</span>Browser-Quelle anlegen</h2>
+  <p>Das Skript stellt das Overlay als kleine Webseite auf deinem eigenen PC bereit. Damit es im Stream erscheint, fügst du diese Seite als <b>Browser</b>-Quelle in deine Szene ein.</p>
+
+  <div class="sub">
+    <h3><span class="sn">3.1</span>Szene wählen und auf „+“ unter „Quellen“ klicken</h3>
+    <ol>
+      <li>Klicke unten links im Bereich <b>Szenen</b> auf die Szene, in der das Overlay erscheinen soll <span class="m">1</span>, zum Beispiel deine Spielszene.</li>
+      <li>Klicke rechts daneben im Bereich <b>Quellen</b> ganz unten auf das <b>+</b> <span class="m">2</span>.</li>
+    </ol>
+    <figure>
+      <div class="win obsmain">
+        <div class="tb"><span>OBS Studio</span><i>— ▢ ✕</i></div>
+        <div class="menubar"><span>Datei</span><span>Bearbeiten</span><span>Ansicht</span><span>Docks</span><span>Profil</span><span>Szenensammlung</span><span>Werkzeuge</span><span>Hilfe</span></div>
+        <div class="preview"><span>Vorschau</span></div>
+        <div class="docks">
+          <div class="dk"><div class="hd">Szenen</div><div class="items"><div>Start</div><div class="sel">Spiel <span class="m">1</span></div><div>Pause</div></div><div class="bar"><span class="btnx sm">+</span><span class="btnx sm">−</span></div></div>
+          <div class="dk hot"><div class="hd">Quellen</div><div class="items"><div>Spielaufnahme</div><div>Webcam</div></div><div class="bar"><span class="btnx sm hotbtn">+</span><span class="m">2</span><span class="btnx sm">−</span><span class="btnx sm">⚙</span></div></div>
+          <div class="dk"><div class="hd">Audio-Mixer</div><div class="items"><div class="meter"></div><div class="meter"></div></div></div>
+          <div class="dk"><div class="hd">Szenenübergänge</div><div class="items"><div class="ph" style="width:60pt"></div></div></div>
+          <div class="dk"><div class="hd">Steuerung</div><div class="items"><div class="btnx sm w">Stream starten</div><div class="btnx sm w">Aufnahme starten</div></div></div>
+        </div>
+      </div>
+      <figcaption>Das OBS-Hauptfenster. Der Bereich „Quellen“ ist orange umrandet. Die Anordnung der Bereiche kann bei dir anders sein, die Namen sind aber dieselben.</figcaption>
+    </figure>
+    <div class="note"><b>Tipp</b>Du findest den Knopf nicht? Ein Rechtsklick auf eine freie Stelle im Bereich <b>Quellen</b> und dann <b>Hinzufügen</b> öffnet dieselbe Liste.</div>
+  </div>
+
+  <div class="sub">
+    <h3><span class="sn">3.2</span>„Browser“ auswählen</h3>
+    <div class="row" style="gap:14pt; align-items:center">
+      <figure style="margin:0; flex:none">
+        <div class="win" style="width:170pt">
+          <div class="dropdown static">
+            <div><span class="ph" style="width:100pt"></span></div>
+            <div><span class="ph" style="width:85pt"></span></div>
+            <div><span class="ph" style="width:40pt"></span></div>
+            <div><span class="ph" style="width:90pt"></span></div>
+            <div class="hl"><span>Browser</span><span class="m">3</span></div>
+            <div><span class="ph" style="width:55pt"></span></div>
+            <div><span class="ph" style="width:70pt"></span></div>
+          </div>
+        </div>
+      </figure>
+      <div>
+        <p>Es öffnet sich eine Liste aller Quellentypen. Sie ist alphabetisch sortiert.</p>
+        <p>Klicke auf <b>Browser</b> <span class="m">3</span>, mit dem kleinen Globus-Symbol davor.</p>
+        <p style="color:var(--muted); font-size:9.5pt">Nicht verwechseln mit „Bildschirmaufnahme“ oder „Fensteraufnahme“, die stehen direkt in der Nähe.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ SEITE 4: SCHRITT 3 (Teil 2) ============================ -->
+<section class="page">
+  <div class="sub">
+    <h3><span class="sn">3.3</span>Namen vergeben</h3>
+    <div class="row" style="gap:14pt; align-items:flex-start">
+      <figure style="margin:0; flex:none">
+        <div class="win" style="width:250pt">
+          <div class="tb"><span>Quelle erstellen/auswählen</span><i>✕</i></div>
+          <div class="bd">
+            <div style="margin-bottom:5pt"><span class="radio on"></span>Neu erstellen <span class="m" style="margin-left:3pt">4</span></div>
+            <div class="field" style="margin:0 0 8pt 16pt">Controller Overlay<span class="m">5</span></div>
+            <div style="margin-bottom:5pt; color:#8b919e"><span class="radio"></span>Vorhandene hinzufügen</div>
+            <div class="list" style="min-height:34pt; margin:0 0 8pt 16pt"></div>
+            <div style="margin-bottom:8pt"><span class="chk on">✓</span>Quelle sichtbar machen</div>
+            <div style="display:flex; gap:5pt; justify-content:flex-end"><span class="btnx pri">OK</span><span class="m">6</span><span class="btnx">Abbrechen</span></div>
+          </div>
+        </div>
+      </figure>
+      <div>
+        <ol>
+          <li>Lass <b>Neu erstellen</b> ausgewählt <span class="m">4</span>.</li>
+          <li>Ersetze den vorgeschlagenen Namen, etwa „Browser“, durch einen eigenen, zum Beispiel <code>Controller Overlay</code> <span class="m">5</span>. Unter diesem Namen findest du die Quelle später in der Liste.</li>
+          <li>Der Haken bei <b>Quelle sichtbar machen</b> bleibt gesetzt.</li>
+          <li>Klicke auf <b>OK</b> <span class="m">6</span>.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub">
+    <h3><span class="sn">3.4</span>Eigenschaften ausfüllen</h3>
+    <p>Jetzt öffnet sich das Fenster <b>Eigenschaften</b>. Oben siehst du eine kleine Vorschau, darunter die Einstellungen. Geh die Felder von oben nach unten durch:</p>
+    <figure>
+      <div class="win">
+        <div class="tb"><span>Eigenschaften für „Controller Overlay“</span><i>✕</i></div>
+        <div class="bd">
+          <div class="propprev"><img src="{{PROP_PREVIEW}}" alt=""></div>
+          <div class="frow"><span></span><span><span class="chk"></span>Lokale Datei <span class="m" style="margin-left:4pt">7</span></span></div>
+          <div class="frow"><span>URL</span><span class="field hotfield">http://localhost:8790<span class="m">8</span></span></div>
+          <div class="frow"><span>Breite</span><span class="field hotfield" style="width:90pt">1600<span class="m">9</span></span></div>
+          <div class="frow"><span>Höhe</span><span class="field hotfield" style="width:90pt">1120<span class="m">9</span></span></div>
+          <div class="frow dim"><span></span><span>… weitere Einstellungen unverändert lassen …</span></div>
+          <div style="margin-top:4pt; display:flex; gap:5pt; justify-content:flex-end; align-items:center"><span class="btnx">Standardwerte</span><span class="btnx pri">OK</span><span class="m">10</span><span class="btnx">Abbrechen</span></div>
+        </div>
+      </div>
+      <figcaption>Das Fenster „Eigenschaften“ der Browser-Quelle. Orange umrandet sind die Felder, die du änderst.</figcaption>
+    </figure>
+
+    <table class="steps">
+      <tr><td><span class="m">7</span></td><td><b>Lokale Datei</b></td><td>Hier darf <b>kein Haken</b> sein. Ist einer gesetzt, klick ihn weg.</td></tr>
+      <tr><td><span class="m">8</span></td><td><b>URL</b></td><td>Im Feld steht schon eine Beispieladresse von OBS. Klick hinein, markiere alles mit <span class="k">Strg</span> + <span class="k">A</span>, lösche es und tippe <code>http://localhost:8790</code> ein. Kein Leerzeichen, kein „www“.</td></tr>
+      <tr><td><span class="m">9</span></td><td><b>Breite</b> und <b>Höhe</b></td><td>Trag <code>1600</code> und <code>1120</code> ein.</td></tr>
+      <tr><td><span class="m">10</span></td><td><b>OK</b></td><td>Klick auf <b>OK</b>.</td></tr>
+    </table>
+
+  </div>
+</section>
+
+<!-- ============================ SEITE 5: SCHRITT 3 (Teil 3) ============================ -->
+<section class="page">
+  <div class="sub">
+    <div class="note" style="margin-top:0"><b>So erkennst du, ob es geklappt hat</b>Sobald die URL stimmt, erscheint der Controller oben in der kleinen Vorschau des Eigenschaften-Fensters. Bleibt sie schwarz oder zeigt eine Fehlerseite, ist das Skript nicht geladen (siehe Schritt 2) oder die URL falsch geschrieben.</div>
+  </div>
+  <div class="sub">
+    <h3><span class="sn">3.5</span>Overlay platzieren</h3>
+    <p>Das Overlay erscheint jetzt in der großen Vorschau von OBS. Der Hintergrund ist durchsichtig, du siehst also nur den Controller über deinem Spielbild.</p>
+    <figure>
+      <div class="win">
+        <div class="tb"><span>OBS Studio – Vorschau</span><i>— ▢ ✕</i></div>
+        <div class="scene big">
+          <div class="hud">LEVEL 3</div><div class="hp"></div>
+          <div class="selbox"><img src="{{SCENE}}" alt=""><i class="h tl"></i><i class="h tr"></i><i class="h bl"></i><i class="h br"></i><span class="m mv">11</span><span class="m rs">12</span></div>
+        </div>
+      </div>
+      <figcaption>Die ausgewählte Quelle hat einen roten Rahmen mit Anfassern an den Ecken.</figcaption>
+    </figure>
+    <ul>
+      <li><b>Verschieben</b> <span class="m">11</span>: Klick in die Mitte des Overlays, halte die Maustaste gedrückt und zieh es an die gewünschte Stelle, zum Beispiel unten rechts.</li>
+      <li><b>Größe</b> <span class="m">12</span>: Für ein scharfes Bild <b>nicht</b> an den roten Ecken ziehen. Ändere die Größe lieber in den Eigenschaften über <b>Breite</b> und <b>Höhe</b>, etwa <code>800</code> × <code>560</code> für ein halb so großes Overlay.</li>
+      <li><b>Später ändern</b>: Doppelklick auf <b>Controller Overlay</b> im Bereich <b>Quellen</b> öffnet die Eigenschaften wieder. Alternativ Rechtsklick → <b>Eigenschaften</b>.</li>
+      <li><b>In anderen Szenen</b>: Wiederhole Schritt 3.1 bis 3.3 in der anderen Szene und wähle in 3.3 <b>Vorhandene hinzufügen</b> → <b>Controller Overlay</b>. Dann musst du die Eigenschaften nicht noch einmal ausfüllen.</li>
+    </ul>
+    <div class="warn"><b>Overlay verdeckt oder unsichtbar?</b>Quellen weiter oben in der Liste liegen vor den unteren. Steht <b>Controller Overlay</b> unter deiner Spielaufnahme, verdeckt das Spielbild das Overlay. Zieh es in der Liste nach oben, oder markiere es und klicke auf den Pfeil nach oben.</div>
+  </div>
+</section>
+
+<!-- ============================ SEITE 4: SCHRITT 4 ============================ -->
+<section class="page">
+  <div class="step">
+    <h2><span class="num">4</span>Aussehen einstellen</h2>
+    <p>Alle Einstellungen findest du unter <b>Werkzeuge → Skripte</b>, wenn du das Skript in der Liste anklickst. Änderungen wirken sofort im Overlay, ohne „Anwenden“ und auch während des Streams.</p>
+
+    <table>
+      <tr><th style="width:120pt">Einstellung</th><th>Bedeutung</th></tr>
+      <tr><td><b>Controller</b></td><td><b>Automatisch</b> zeigt den Controller, an dem zuletzt eine Taste gedrückt wurde. Alternativ wählst du einen bestimmten Controller aus der Liste. Einen neu verbundenen Controller zeigt die Liste nach einem Klick auf <b>Controller-Liste aktualisieren</b>.</td></tr>
+      <tr><td><b>Controller-Layout</b></td><td><b>Automatisch</b> passt das Bild an den benutzten Controller an. Mit <b>Xbox</b>, <b>PS5</b> oder <b>Nintendo Switch 2</b> legst du ein Layout fest; Eingaben jedes Controllers werden dann in diesem Layout gezeigt.</td></tr>
+      <tr><td><b>Farbvariante</b></td><td><b>Dunkel</b> oder <b>Hell</b></td></tr>
+      <tr><td><b>Leuchtfarbe</b></td><td>Farbe, in der gedrückte Tasten, Sticks und Trigger aufleuchten. Die farbigen Tasten von Xbox (A, B, X, Y) und PS5 (Symboltasten) leuchten in ihrer eigenen Farbe.</td></tr>
+      <tr><td><b>Deckkraft</b></td><td>Wie durchsichtig das ganze Overlay ist, von 10&nbsp;% (fast unsichtbar) bis 100&nbsp;% (voll deckend). So bleibt das Spielgeschehen dahinter sichtbar.</td></tr>
+      <tr><td><b>Hinweis anzeigen</b></td><td>Zeigt einen kurzen Text, solange kein Controller verbunden ist.</td></tr>
+      <tr><td><b>Port</b></td><td>Nur ändern, wenn das Skript-Protokoll meldet, dass der Port belegt ist. Dann die URL der Browser-Quelle entsprechend anpassen.</td></tr>
+    </table>
+
+    <h3>Was angezeigt wird</h3>
+    <ul>
+      <li>Alle Tasten leuchten, solange sie gedrückt sind, auch bei ganz kurzem Antippen.</li>
+      <li>Die Trigger (LT/RT bzw. L2/R2) füllen sich stufenlos, je nachdem, wie weit du drückst. ZL und ZR am Switch 2 Pro Controller haben keinen Zwischenweg und leuchten ganz oder gar nicht.</li>
+      <li>Die Sticks bewegen sich mit; ein Druck auf den Stick (L3/R3) lässt ihn leuchten.</li>
+      <li>Beim PS5-Controller erscheinen bis zu zwei Finger als Punkte auf dem Touchpad.</li>
+      <li>Beim Switch 2 Pro Controller werden auch die C-Taste und die Rücktasten GL und GR angezeigt.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================ SEITE 5: BEISPIELE + FERTIG ============================ -->
+<section class="page">
+  <div class="step">
+    <h2>So sieht es aus</h2>
+    <div class="grid2 gal">
+      <figure><div class="pv dark"><img src="{{XBOX_DARK}}" alt=""></div><figcaption>Xbox, Dunkel: A, RB und Steuerkreuz rechts gedrückt, RT halb durchgezogen</figcaption></figure>
+      <figure><div class="pv light"><img src="{{XBOX_WHITE}}" alt=""></div><figcaption>Xbox, Hell, mit eigener Leuchtfarbe: Y und LB gedrückt, LT halb durchgezogen</figcaption></figure>
+      <figure><div class="pv dark"><img src="{{PS_DARK}}" alt=""></div><figcaption>PS5, Dunkel: Kreis und Steuerkreuz hoch gedrückt, L2 durchgezogen, ein Finger auf dem Touchpad</figcaption></figure>
+      <figure><div class="pv light"><img src="{{PS_WHITE}}" alt=""></div><figcaption>PS5, Hell, mit eigener Leuchtfarbe: Dreieck und R1 gedrückt, R2 voll durchgezogen, zwei Finger auf dem Touchpad</figcaption></figure>
+      <figure><div class="pv dark"><img src="{{NS_DARK}}" alt=""></div><figcaption>Switch 2, Dunkel: A, HOME, GL und ZR gedrückt</figcaption></figure>
+      <figure><div class="pv light"><img src="{{NS_WHITE}}" alt=""></div><figcaption>Switch 2, Hell, mit eigener Leuchtfarbe: X, L, ZL und Steuerkreuz links gedrückt</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="step" style="margin-top:14pt">
+    <h2><span class="num">✓</span>Fertig</h2>
+    <p>Drück eine Taste am Controller. Das Overlay erscheint und reagiert sofort.</p>
+  </div>
+</section>
+
+<!-- ============================ SEITE 6: FEHLERBEHEBUNG ============================ -->
+<section class="page">
+  <h2><span class="num">5</span>Fehlerbehebung</h2>
+
+  <div class="faq"><h3>Das Overlay bleibt leer</h3>
+    <p>Prüfe unter <b>Werkzeuge → Skripte</b>, ob das Skript in der Liste steht. Ein Klick auf <b>Skript-Protokoll</b> sollte die Zeile „Overlay läuft unter http://localhost:8790“ zeigen. Prüfe außerdem, dass bei der Browser-Quelle <b>kein</b> Haken bei „Lokale Datei“ gesetzt ist.</p></div>
+
+  <div class="faq"><h3>Im Protokoll steht „Port 8790 ist bereits belegt“</h3>
+    <p>Ein anderes Programm nutzt diesen Port. Stelle in den Skript-Einstellungen einen anderen Port ein, etwa <code>8791</code>, und ändere die URL der Browser-Quelle auf <code>http://localhost:8791</code>.</p></div>
+
+  <div class="faq"><h3>Der Hinweis „Controller verbinden …“ verschwindet nicht</h3>
+    <p>Verbinde den Controller und drück eine Taste. Hilft das nicht, klicke im Skriptfenster auf <b>Controller-Liste aktualisieren</b> und prüfe, ob er in der Liste auftaucht.</p></div>
+
+  <div class="faq"><h3>Der PS5-Controller wird nicht erkannt</h3>
+    <p>Programme wie DS4Windows mit HidHide verstecken den PS5-Controller vor anderen Programmen. Das Skript sieht dann nur den nachgebildeten Xbox-Controller. Stelle in dem Fall <b>Controller-Layout</b> auf <b>PS5</b>; die Eingaben werden dann trotzdem im PS5-Layout angezeigt.</p></div>
+
+  <div class="faq"><h3>Der Switch 2 Pro Controller wird nicht erkannt</h3>
+    <p>Verbinde ihn mit einem <b>USB-Kabel</b>. Per Bluetooth stellt Windows ihn nicht als Controller bereit; das gilt auch für die Joy-Con 2. Kommen trotz Kabel keine Eingaben an, beende <b>Steam</b> komplett und steck den Controller neu ein. Steam belegt sonst die Schnittstelle, über die das Skript den Controller einschaltet.</p></div>
+
+  <div class="faq"><h3>Manche Leuchtfarben, etwa Grün, werden nicht angezeigt</h3>
+    <p>Wahrscheinlich liegt ein <b>Chroma-Key-Filter</b> auf der Browser-Quelle, zum Beispiel von einem früheren Overlay. Rechtsklick auf die Quelle → <b>Filter</b> → den Chroma Key entfernen. Das Overlay braucht keinen Filter, der Hintergrund ist bereits durchsichtig. Soll das Overlay selbst durchscheinen, stell stattdessen in den Skript-Einstellungen die <b>Deckkraft</b> ein.</p></div>
+
+  <div class="faq"><h3>Das Overlay wirkt unscharf</h3>
+    <p>Rechtsklick auf die Quelle → <b>Transformieren → Transformation zurücksetzen</b>, dann die gewünschte Größe über <b>Breite</b> und <b>Höhe</b> in den Eigenschaften einstellen (siehe Schritt 3).</p></div>
+
+  <div class="faq"><h3>Nach einem Update des Skripts</h3>
+    <p>Entpacke die neue ZIP-Datei wie in Schritt 1 in <b>denselben Ordner</b> wie bisher und bestätige, dass die vorhandenen Dateien ersetzt werden. Klicke dann unter <b>Werkzeuge → Skripte</b> auf <b>⟳</b> (Skripte neu laden). Das Overlay aktualisiert sich danach von selbst.</p></div>
+
+  <div class="footer">Hinweis: Die Share-Taste des Xbox-Controllers lässt sich nicht auslesen; alle anderen Tasten werden angezeigt. Die Abbildungen der OBS-Fenster sind vereinfacht nachgezeichnet.</div>
+</section>
+
+</body>
+</html>
