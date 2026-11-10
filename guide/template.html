@@ -116,7 +116,7 @@
   .dropdown.static { position: static; box-shadow: none; border: 0; min-width: 0; }
   .radio { display: inline-block; width: 10pt; height: 10pt; border-radius: 50%; border: 1px solid #6b7180; background: #1c1e25; vertical-align: middle; margin-right: 5pt; }
   .radio.on { background: radial-gradient(circle, #5b8fd9 0 38%, #1c1e25 42%); border-color: #5b8fd9; }
-  .propprev { background: #0f1014; border-radius: 3pt; height: 78pt; display: flex; align-items: center; justify-content: center; margin-bottom: 8pt; }
+  .propprev { background: #0f1014; border-radius: 3pt; height: 78pt; display: flex; align-items: center; justify-content: center; margin-bottom: 8pt; position: relative; }
   .propprev img { height: 72pt; }
   .field.hotfield { outline: 2pt solid var(--mark); outline-offset: 1pt; }
   .frow.dim { opacity: .55; }
@@ -177,7 +177,7 @@
   <div class="toc">
     <span><b>1</b> ZIP entpacken</span>
     <span><b>2</b> Skript laden</span>
-    <span><b>3</b> Browser-Quelle</span>
+    <span><b>3</b> Quelle hinzufügen</span>
     <span><b>4</b> Aussehen einstellen</span>
     <span><b>5</b> Fehlerbehebung</span>
   </div>
@@ -298,7 +298,7 @@
       <figcaption>Das Menü „Werkzeuge“ in der Menüleiste von OBS. Die Einträge können je nach installierten Plugins anders aussehen.</figcaption>
     </figure>
 
-    <p style="margin-top:10pt">Im Fenster <b>Skripte</b> klickst du unten links auf <b>+</b> <span class="m">3</span> und wählst die Datei <code>xbox-controller-overlay.lua</code> aus dem Ordner von Schritt 1, also zum Beispiel <b>Dokumente → OBS → ControllerOverlay</b>. Danach erscheint sie in der Liste <span class="m">4</span>, und rechts siehst du die Beschreibung und die Einstellungen <span class="m">5</span>.</p>
+    <p style="margin-top:10pt">Im Fenster <b>Skripte</b> klickst du unten links auf <b>+</b> <span class="m">3</span> und wählst die Datei <code>xbox-controller-overlay.lua</code> aus dem Ordner von Schritt 1, also zum Beispiel <b>Dokumente → OBS → ControllerOverlay</b>. Danach erscheint sie in der Liste <span class="m">4</span>, und rechts siehst du die Beschreibung <span class="m">5</span>. Hier musst du nichts einstellen; das Aussehen legst du später direkt an der Quelle fest.</p>
 
     <figure>
       <div class="win">
@@ -315,30 +315,23 @@
               <div style="margin-top:5pt"><span class="btnx" style="width:100%">Skript-Protokoll</span></div>
             </div>
             <div style="flex:1">
-              <div class="desc"><b>Controller Overlay (Xbox, PS5 &amp; Switch 2)</b> <span class="m" style="margin-left:3pt">5</span><br>Zeigt den Controller mit allen Eingaben in Echtzeit … URL <b>http://localhost:8790</b> …</div>
-              <div class="frow"><span>Controller</span><span class="field">Automatisch (zuletzt benutzter Controller)<span class="caret">▼</span></span></div>
-              <div class="frow"><span></span><span class="btnx">Controller-Liste aktualisieren</span></div>
-              <div class="frow"><span>Controller-Layout</span><span class="field">Automatisch (erkennt den Controller)<span class="caret">▼</span></span></div>
-              <div class="frow"><span>Farbvariante</span><span class="field">Dunkel<span class="caret">▼</span></span></div>
-              <div class="frow"><span>Leuchtfarbe</span><span><span class="swatch" style="background:#00e5ff"></span> <span class="btnx">Farbe auswählen</span></span></div>
-              <div class="frow"><span>Deckkraft</span><span style="display:flex; align-items:center; gap:6pt"><span style="flex:1; height:4pt; border-radius:2pt; background:#5a8dee; position:relative"><span style="position:absolute; right:-5pt; top:-4pt; width:11pt; height:11pt; border-radius:50%; background:#e6e9ee"></span></span><span class="field" style="width:52pt">100 %</span></span></div>
-              <div class="frow"><span></span><span><span class="chk on">✓</span>Hinweis anzeigen, wenn kein Controller verbunden ist</span></div>
+              <div class="desc"><b>Controller Overlay (Xbox, PS5 &amp; Switch 2)</b> <span class="m" style="margin-left:3pt">5</span><br>Zeigt den Controller mit allen Eingaben in Echtzeit – auch während ein Spiel im Vordergrund ist.<br><b>Einrichtung:</b> In der Szene bei <i>Quellen</i> auf <b>+</b> klicken und <b>Controller Overlay</b> wählen. …</div>
               <div class="frow"><span>Port</span><span class="field" style="width:70pt">8790</span></div>
             </div>
           </div>
           <div style="text-align:right; margin-top:6pt"><span class="btnx">Schließen</span></div>
         </div>
       </div>
-      <figcaption>Das Fenster „Skripte“ mit geladenem Overlay-Skript und seinen Einstellungen.</figcaption>
+      <figcaption>Das Fenster „Skripte“ mit geladenem Overlay-Skript. Den Port änderst du nur im Ausnahmefall (siehe Fehlerbehebung).</figcaption>
     </figure>
-    <p>Das Fenster kannst du danach schließen. Das Skript läuft ab jetzt bei jedem Start von OBS automatisch mit.</p>
+    <p>Das Fenster kannst du danach schließen. Das Skript läuft ab jetzt bei jedem Start von OBS automatisch mit und bringt eine neue Quellenart mit: <b>Controller Overlay</b>.</p>
   </div>
 </section>
 
 <!-- ============================ SEITE 3: SCHRITT 3 (Teil 1) ============================ -->
 <section class="page">
-  <h2><span class="num">3</span>Browser-Quelle anlegen</h2>
-  <p>Das Skript stellt das Overlay als kleine Webseite auf deinem eigenen PC bereit. Damit es im Stream erscheint, fügst du diese Seite als <b>Browser</b>-Quelle in deine Szene ein.</p>
+  <h2><span class="num">3</span>Overlay-Quelle hinzufügen</h2>
+  <p>Damit das Overlay im Stream erscheint, fügst du die Quelle <b>Controller Overlay</b> in deine Szene ein. Sie funktioniert wie jede andere Quelle in OBS.</p>
 
   <div class="sub">
     <h3><span class="sn">3.1</span>Szene wählen und auf „+“ unter „Quellen“ klicken</h3>
@@ -365,7 +358,7 @@
   </div>
 
   <div class="sub">
-    <h3><span class="sn">3.2</span>„Browser“ auswählen</h3>
+    <h3><span class="sn">3.2</span>„Controller Overlay“ auswählen</h3>
     <div class="row" style="gap:14pt; align-items:center">
       <figure style="margin:0; flex:none">
         <div class="win" style="width:170pt">
@@ -373,8 +366,8 @@
             <div><span class="ph" style="width:100pt"></span></div>
             <div><span class="ph" style="width:85pt"></span></div>
             <div><span class="ph" style="width:40pt"></span></div>
+            <div class="hl"><span>Controller Overlay</span><span class="m">3</span></div>
             <div><span class="ph" style="width:90pt"></span></div>
-            <div class="hl"><span>Browser</span><span class="m">3</span></div>
             <div><span class="ph" style="width:55pt"></span></div>
             <div><span class="ph" style="width:70pt"></span></div>
           </div>
@@ -382,8 +375,8 @@
       </figure>
       <div>
         <p>Es öffnet sich eine Liste aller Quellentypen. Sie ist alphabetisch sortiert.</p>
-        <p>Klicke auf <b>Browser</b> <span class="m">3</span>, mit dem kleinen Globus-Symbol davor.</p>
-        <p style="color:var(--muted); font-size:9.5pt">Nicht verwechseln mit „Bildschirmaufnahme“ oder „Fensteraufnahme“, die stehen direkt in der Nähe.</p>
+        <p>Klicke auf <b>Controller Overlay</b> <span class="m">3</span>.</p>
+        <p style="color:var(--muted); font-size:9.5pt">Fehlt der Eintrag, ist das Skript noch nicht geladen. Prüfe Schritt 2.</p>
       </div>
     </div>
   </div>
@@ -410,7 +403,7 @@
       <div>
         <ol>
           <li>Lass <b>Neu erstellen</b> ausgewählt <span class="m">4</span>.</li>
-          <li>Ersetze den vorgeschlagenen Namen, etwa „Browser“, durch einen eigenen, zum Beispiel <code>Controller Overlay</code> <span class="m">5</span>. Unter diesem Namen findest du die Quelle später in der Liste.</li>
+          <li>OBS schlägt den Namen <code>Controller Overlay</code> vor <span class="m">5</span>. Du kannst ihn so lassen oder ändern. Unter diesem Namen findest du die Quelle später in der Liste.</li>
           <li>Der Haken bei <b>Quelle sichtbar machen</b> bleibt gesetzt.</li>
           <li>Klicke auf <b>OK</b> <span class="m">6</span>.</li>
         </ol>
@@ -419,39 +412,35 @@
   </div>
 
   <div class="sub">
-    <h3><span class="sn">3.4</span>Eigenschaften ausfüllen</h3>
-    <p>Jetzt öffnet sich das Fenster <b>Eigenschaften</b>. Oben siehst du eine kleine Vorschau, darunter die Einstellungen. Geh die Felder von oben nach unten durch:</p>
+    <h3><span class="sn">3.4</span>Eigenschaften bestätigen</h3>
+    <p>Jetzt öffnet sich das Fenster <b>Eigenschaften</b>. Oben siehst du eine kleine Vorschau des Overlays, darunter seine Einstellungen. Die Standardwerte passen für den Anfang. Was die einzelnen Einstellungen bewirken, steht in Schritt 4.</p>
     <figure>
       <div class="win">
         <div class="tb"><span>Eigenschaften für „Controller Overlay“</span><i>✕</i></div>
         <div class="bd">
-          <div class="propprev"><img src="{{PROP_PREVIEW}}" alt=""></div>
-          <div class="frow"><span></span><span><span class="chk"></span>Lokale Datei <span class="m" style="margin-left:4pt">7</span></span></div>
-          <div class="frow"><span>URL</span><span class="field hotfield">http://localhost:8790<span class="m">8</span></span></div>
-          <div class="frow"><span>Breite</span><span class="field hotfield" style="width:90pt">1600<span class="m">9</span></span></div>
-          <div class="frow"><span>Höhe</span><span class="field hotfield" style="width:90pt">1120<span class="m">9</span></span></div>
-          <div class="frow dim"><span></span><span>… weitere Einstellungen unverändert lassen …</span></div>
-          <div style="margin-top:4pt; display:flex; gap:5pt; justify-content:flex-end; align-items:center"><span class="btnx">Standardwerte</span><span class="btnx pri">OK</span><span class="m">10</span><span class="btnx">Abbrechen</span></div>
+          <div class="propprev"><img src="{{PROP_PREVIEW}}" alt=""><span class="m" style="position:absolute; right:8pt; top:8pt">7</span></div>
+          <div class="frow"><span>Controller</span><span class="field">Automatisch (zuletzt benutzter Controller)<span class="caret">▼</span></span></div>
+          <div class="frow"><span></span><span class="btnx">Controller-Liste aktualisieren</span></div>
+          <div class="frow"><span>Controller-Layout</span><span class="field">Automatisch (erkennt den Controller)<span class="caret">▼</span></span></div>
+          <div class="frow"><span>Farbvariante</span><span class="field">Dunkel<span class="caret">▼</span></span></div>
+          <div class="frow"><span>Leuchtfarbe</span><span><span class="swatch" style="background:#00e5ff"></span> <span class="btnx">Farbe auswählen</span></span></div>
+          <div class="frow"><span></span><span><span class="chk"></span>Farbige Tasten (A/B/X/Y bzw. PS-Symbole) in ihrer Originalfarbe leuchten lassen</span></div>
+          <div class="frow"><span>Deckkraft</span><span style="display:flex; align-items:center; gap:6pt"><span style="flex:1; height:4pt; border-radius:2pt; background:#5a8dee; position:relative"><span style="position:absolute; right:-5pt; top:-4pt; width:11pt; height:11pt; border-radius:50%; background:#e6e9ee"></span></span><span class="field" style="width:52pt">100 %</span></span></div>
+          <div class="frow"><span></span><span><span class="chk on">✓</span>Hinweis anzeigen, wenn kein Controller verbunden ist</span></div>
+          <div style="margin-top:4pt; display:flex; gap:5pt; justify-content:flex-end; align-items:center"><span class="btnx">Standardwerte</span><span class="btnx pri">OK</span><span class="m">8</span><span class="btnx">Abbrechen</span></div>
         </div>
       </div>
-      <figcaption>Das Fenster „Eigenschaften“ der Browser-Quelle. Orange umrandet sind die Felder, die du änderst.</figcaption>
+      <figcaption>Das Fenster „Eigenschaften“ der Quelle „Controller Overlay“ mit den Standardwerten.</figcaption>
     </figure>
-
-    <table class="steps">
-      <tr><td><span class="m">7</span></td><td><b>Lokale Datei</b></td><td>Hier darf <b>kein Haken</b> sein. Ist einer gesetzt, klick ihn weg.</td></tr>
-      <tr><td><span class="m">8</span></td><td><b>URL</b></td><td>Im Feld steht schon eine Beispieladresse von OBS. Klick hinein, markiere alles mit <span class="k">Strg</span> + <span class="k">A</span>, lösche es und tippe <code>http://localhost:8790</code> ein. Kein Leerzeichen, kein „www“.</td></tr>
-      <tr><td><span class="m">9</span></td><td><b>Breite</b> und <b>Höhe</b></td><td>Trag <code>1600</code> und <code>1120</code> ein.</td></tr>
-      <tr><td><span class="m">10</span></td><td><b>OK</b></td><td>Klick auf <b>OK</b>.</td></tr>
-    </table>
-
+    <ol>
+      <li>In der Vorschau <span class="m">7</span> erscheint der Controller. Drückst du eine Taste, leuchtet sie dort schon auf.</li>
+      <li>Klicke auf <b>OK</b> <span class="m">8</span>.</li>
+    </ol>
   </div>
 </section>
 
 <!-- ============================ SEITE 5: SCHRITT 3 (Teil 3) ============================ -->
 <section class="page">
-  <div class="sub">
-    <div class="note" style="margin-top:0"><b>So erkennst du, ob es geklappt hat</b>Sobald die URL stimmt, erscheint der Controller oben in der kleinen Vorschau des Eigenschaften-Fensters. Bleibt sie schwarz oder zeigt eine Fehlerseite, ist das Skript nicht geladen (siehe Schritt 2) oder die URL falsch geschrieben.</div>
-  </div>
   <div class="sub">
     <h3><span class="sn">3.5</span>Overlay platzieren</h3>
     <p>Das Overlay erscheint jetzt in der großen Vorschau von OBS. Der Hintergrund ist durchsichtig, du siehst also nur den Controller über deinem Spielbild.</p>
@@ -467,9 +456,9 @@
     </figure>
     <ul>
       <li><b>Verschieben</b> <span class="m">11</span>: Klick in die Mitte des Overlays, halte die Maustaste gedrückt und zieh es an die gewünschte Stelle, zum Beispiel unten rechts.</li>
-      <li><b>Größe</b> <span class="m">12</span>: Für ein scharfes Bild <b>nicht</b> an den roten Ecken ziehen. Ändere die Größe lieber in den Eigenschaften über <b>Breite</b> und <b>Höhe</b>, etwa <code>800</code> × <code>560</code> für ein halb so großes Overlay.</li>
+      <li><b>Größe</b> <span class="m">12</span>: Zieh an einer der roten Ecken. Das Seitenverhältnis bleibt dabei erhalten. Das Overlay wird in hoher Auflösung gezeichnet und bleibt auch verkleinert scharf.</li>
       <li><b>Später ändern</b>: Doppelklick auf <b>Controller Overlay</b> im Bereich <b>Quellen</b> öffnet die Eigenschaften wieder. Alternativ Rechtsklick → <b>Eigenschaften</b>.</li>
-      <li><b>In anderen Szenen</b>: Wiederhole Schritt 3.1 bis 3.3 in der anderen Szene und wähle in 3.3 <b>Vorhandene hinzufügen</b> → <b>Controller Overlay</b>. Dann musst du die Eigenschaften nicht noch einmal ausfüllen.</li>
+      <li><b>In anderen Szenen</b>: Wiederhole Schritt 3.1 bis 3.3 in der anderen Szene und wähle in 3.3 <b>Vorhandene hinzufügen</b> → <b>Controller Overlay</b>. Es erscheint dann überall mit denselben Einstellungen. Legst du stattdessen eine neue Quelle an, hat sie eigene Einstellungen, zum Beispiel eine andere Leuchtfarbe.</li>
     </ul>
     <div class="warn"><b>Overlay verdeckt oder unsichtbar?</b>Quellen weiter oben in der Liste liegen vor den unteren. Steht <b>Controller Overlay</b> unter deiner Spielaufnahme, verdeckt das Spielbild das Overlay. Zieh es in der Liste nach oben, oder markiere es und klicke auf den Pfeil nach oben.</div>
   </div>
@@ -479,17 +468,17 @@
 <section class="page">
   <div class="step">
     <h2><span class="num">4</span>Aussehen einstellen</h2>
-    <p>Alle Einstellungen findest du unter <b>Werkzeuge → Skripte</b>, wenn du das Skript in der Liste anklickst. Änderungen wirken sofort im Overlay, ohne „Anwenden“ und auch während des Streams.</p>
+    <p>Alle Einstellungen findest du in den <b>Eigenschaften der Quelle</b>: Doppelklick auf <b>Controller Overlay</b> im Bereich <b>Quellen</b>. Änderungen wirken sofort im Overlay, auch während des Streams.</p>
 
     <table>
       <tr><th style="width:120pt">Einstellung</th><th>Bedeutung</th></tr>
       <tr><td><b>Controller</b></td><td><b>Automatisch</b> zeigt den Controller, an dem zuletzt eine Taste gedrückt wurde. Alternativ wählst du einen bestimmten Controller aus der Liste. Einen neu verbundenen Controller zeigt die Liste nach einem Klick auf <b>Controller-Liste aktualisieren</b>.</td></tr>
       <tr><td><b>Controller-Layout</b></td><td><b>Automatisch</b> passt das Bild an den benutzten Controller an. Mit <b>Xbox</b>, <b>PS5</b> oder <b>Nintendo Switch 2</b> legst du ein Layout fest; Eingaben jedes Controllers werden dann in diesem Layout gezeigt.</td></tr>
       <tr><td><b>Farbvariante</b></td><td><b>Dunkel</b> oder <b>Hell</b></td></tr>
-      <tr><td><b>Leuchtfarbe</b></td><td>Farbe, in der gedrückte Tasten, Sticks und Trigger aufleuchten. Die farbigen Tasten von Xbox (A, B, X, Y) und PS5 (Symboltasten) leuchten in ihrer eigenen Farbe.</td></tr>
+      <tr><td><b>Leuchtfarbe</b></td><td>Farbe, in der gedrückte Tasten, Sticks und Trigger aufleuchten.</td></tr>
+      <tr><td><b>Originalfarbe</b></td><td>Mit Haken leuchten die farbigen Tasten von Xbox (A, B, X, Y) und PS5 (Symboltasten) in ihrer Farbe vom Controller statt in der Leuchtfarbe.</td></tr>
       <tr><td><b>Deckkraft</b></td><td>Wie durchsichtig das ganze Overlay ist, von 10&nbsp;% (fast unsichtbar) bis 100&nbsp;% (voll deckend). So bleibt das Spielgeschehen dahinter sichtbar.</td></tr>
       <tr><td><b>Hinweis anzeigen</b></td><td>Zeigt einen kurzen Text, solange kein Controller verbunden ist.</td></tr>
-      <tr><td><b>Port</b></td><td>Nur ändern, wenn das Skript-Protokoll meldet, dass der Port belegt ist. Dann die URL der Browser-Quelle entsprechend anpassen.</td></tr>
     </table>
 
     <h3>Was angezeigt wird</h3>
@@ -528,13 +517,13 @@
   <h2><span class="num">5</span>Fehlerbehebung</h2>
 
   <div class="faq"><h3>Das Overlay bleibt leer</h3>
-    <p>Prüfe unter <b>Werkzeuge → Skripte</b>, ob das Skript in der Liste steht. Ein Klick auf <b>Skript-Protokoll</b> sollte die Zeile „Overlay läuft unter http://localhost:8790“ zeigen. Prüfe außerdem, dass bei der Browser-Quelle <b>kein</b> Haken bei „Lokale Datei“ gesetzt ist.</p></div>
+    <p>Prüfe unter <b>Werkzeuge → Skripte</b>, ob das Skript in der Liste steht. Ein Klick auf <b>Skript-Protokoll</b> sollte die Zeile „Overlay läuft unter http://localhost:8790“ zeigen. Steht dort eine Fehlermeldung, hilft oft ein Neustart von OBS.</p></div>
 
   <div class="faq"><h3>Im Protokoll steht „Port 8790 ist bereits belegt“</h3>
-    <p>Ein anderes Programm nutzt diesen Port. Stelle in den Skript-Einstellungen einen anderen Port ein, etwa <code>8791</code>, und ändere die URL der Browser-Quelle auf <code>http://localhost:8791</code>.</p></div>
+    <p>Ein anderes Programm nutzt diesen Port. Stelle im Fenster <b>Skripte</b> einen anderen <b>Port</b> ein, etwa <code>8791</code>. Die Overlay-Quellen stellen sich automatisch um.</p></div>
 
   <div class="faq"><h3>Der Hinweis „Controller verbinden …“ verschwindet nicht</h3>
-    <p>Verbinde den Controller und drück eine Taste. Hilft das nicht, klicke im Skriptfenster auf <b>Controller-Liste aktualisieren</b> und prüfe, ob er in der Liste auftaucht.</p></div>
+    <p>Verbinde den Controller und drück eine Taste. Hilft das nicht, öffne die Eigenschaften der Quelle, klicke auf <b>Controller-Liste aktualisieren</b> und prüfe, ob er in der Liste auftaucht.</p></div>
 
   <div class="faq"><h3>Der PS5-Controller wird nicht erkannt</h3>
     <p>Programme wie DS4Windows mit HidHide verstecken den PS5-Controller vor anderen Programmen. Das Skript sieht dann nur den nachgebildeten Xbox-Controller. Stelle in dem Fall <b>Controller-Layout</b> auf <b>PS5</b>; die Eingaben werden dann trotzdem im PS5-Layout angezeigt.</p></div>
@@ -543,13 +532,14 @@
     <p>Verbinde ihn mit einem <b>USB-Kabel</b>. Per Bluetooth stellt Windows ihn nicht als Controller bereit; das gilt auch für die Joy-Con 2. Kommen trotz Kabel keine Eingaben an, beende <b>Steam</b> komplett und steck den Controller neu ein. Steam belegt sonst die Schnittstelle, über die das Skript den Controller einschaltet.</p></div>
 
   <div class="faq"><h3>Manche Leuchtfarben, etwa Grün, werden nicht angezeigt</h3>
-    <p>Wahrscheinlich liegt ein <b>Chroma-Key-Filter</b> auf der Browser-Quelle, zum Beispiel von einem früheren Overlay. Rechtsklick auf die Quelle → <b>Filter</b> → den Chroma Key entfernen. Das Overlay braucht keinen Filter, der Hintergrund ist bereits durchsichtig. Soll das Overlay selbst durchscheinen, stell stattdessen in den Skript-Einstellungen die <b>Deckkraft</b> ein.</p></div>
+    <p>Wahrscheinlich liegt ein <b>Chroma-Key-Filter</b> auf der Quelle, zum Beispiel von einem früheren Overlay. Rechtsklick auf die Quelle → <b>Filter</b> → den Chroma Key entfernen. Das Overlay braucht keinen Filter, der Hintergrund ist bereits durchsichtig. Soll das Overlay selbst durchscheinen, stell stattdessen in den Eigenschaften der Quelle die <b>Deckkraft</b> ein.</p></div>
 
-  <div class="faq"><h3>Das Overlay wirkt unscharf</h3>
-    <p>Rechtsklick auf die Quelle → <b>Transformieren → Transformation zurücksetzen</b>, dann die gewünschte Größe über <b>Breite</b> und <b>Höhe</b> in den Eigenschaften einstellen (siehe Schritt 3).</p></div>
+  <div class="faq"><h3>Das Overlay ist verzerrt</h3>
+    <p>Rechtsklick auf die Quelle → <b>Transformieren → Transformation zurücksetzen</b>. Danach die Größe nur an den roten Ecken ändern, nicht an den Kanten.</p></div>
 
   <div class="faq"><h3>Nach einem Update des Skripts</h3>
-    <p>Entpacke die neue ZIP-Datei wie in Schritt 1 in <b>denselben Ordner</b> wie bisher und bestätige, dass die vorhandenen Dateien ersetzt werden. Klicke dann unter <b>Werkzeuge → Skripte</b> auf <b>⟳</b> (Skripte neu laden). Das Overlay aktualisiert sich danach von selbst.</p></div>
+    <p>Entpacke die neue ZIP-Datei wie in Schritt 1 in <b>denselben Ordner</b> wie bisher und bestätige, dass die vorhandenen Dateien ersetzt werden. Klicke dann unter <b>Werkzeuge → Skripte</b> auf <b>⟳</b> (Skripte neu laden). Das Overlay aktualisiert sich danach von selbst.</p>
+    <p>Hast du das Overlay noch aus einer älteren Version als <b>Browser</b>-Quelle mit <code>http://localhost:8790</code> eingebunden, ersetze sie durch die Quelle <b>Controller Overlay</b>. Die Browser-Quelle funktioniert zwar weiter, zeigt aber nur die Standardeinstellungen.</p></div>
 
   <div class="footer">Hinweis: Die Share-Taste des Xbox-Controllers lässt sich nicht auslesen; alle anderen Tasten werden angezeigt. Die Abbildungen der OBS-Fenster sind vereinfacht nachgezeichnet.</div>
 </section>

@@ -7,15 +7,16 @@
 
   Einrichtung:
     1. OBS → Werkzeuge → Skripte → "+" → diese Datei auswählen.
-    2. Neue Quelle "Browser" anlegen, "Lokale Datei" NICHT anhaken,
-       URL: http://localhost:8790
-       Breite/Höhe: z. B. 1600 x 1120 (Seitenverhältnis 10:7).
-    3. Layout, Farbvariante, Leuchtfarbe usw. im Skriptfenster einstellen –
-       Änderungen wirken sofort.
+    2. In der Szene bei "Quellen" auf "+" klicken und "Controller Overlay"
+       wählen (1600 x 1120, Seitenverhältnis 10:7).
+    3. Controller, Layout, Farbvariante, Leuchtfarbe, Deckkraft usw. in den
+       Eigenschaften der Quelle einstellen – Änderungen wirken sofort.
+       Jede Quelle hat eigene Einstellungen.
 
-  Optionale URL-Parameter (haben Vorrang vor den Skript-Einstellungen):
+  Alternativ als Browser-Quelle mit der URL http://localhost:8790
+  (dann mit Standard-Einstellungen bzw. diesen URL-Parametern):
     layout=auto|xbox|ps|ns  theme=carbon|white  accent=HEX  hint=0  bg=HEX
-    pad=N  dz=0.12  opacity=10..100
+    pad=N  dz=0.12  opacity=10..100  face=orig
 
   Hinweise: Die Share-Taste des Xbox-Controllers ist über XInput nicht
   auslesbar. Unterstützte PS-Controller: DualSense und DualSense Edge
@@ -110,9 +111,7 @@ local function log(msg) obs.script_log(obs.LOG_INFO, "[Controller Overlay] " .. 
 local function now_s() return obs.os_gettime_ns() / 1e9 end
 local function fmt(f) return string.format("%.3f", f) end
 
--- Einstellungen (vom Skriptfenster)
-local cfg = { theme = "carbon", accent = "#00e5ff", hint = true, layout = "auto", pad = "auto", opacity = 100 }
--- Zuletzt gesehene Controller (für die Auswahlliste im Skriptfenster)
+-- Zuletzt gesehene Controller (für die Auswahlliste in den Quellen-Eigenschaften)
 local pad_list = {}
 
 local function short_hash(s)
@@ -577,8 +576,11 @@ local wsa_started = false
 local current_port = nil
 local conns = {}
 local last_json = '{"pads":[]}'
-local cfg_json = ""
-local cfg_changed = false
+-- Einstellungen je Overlay-Quelle, Schlüssel = Quellen-Kennung (?sid=… in der URL)
+local DEFAULT_CFG_JSON = '{"pad":"auto","layout":"auto","theme":"carbon","accent":"#00e5ff","hint":true,"opacity":100,"facecolors":false}'
+local src_cfg = {}
+local src_changed = {}
+local function cfg_for(sid) return (sid and src_cfg[sid]) or DEFAULT_CFG_JSON end
 local recv_buf = ffi.new("char[4096]")
 
 local function stop_server()
@@ -619,12 +621,13 @@ local function handle_request(c)
     c.out = "HTTP/1.1 400 Bad Request\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
     return
   end
+  c.sid = path:match("[?&]sid=(%w+)")
   path = path:gsub("%?.*$", "")
   if path == "/events" then
     c.sse, c.close = true, false
     c.out = "HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nCache-Control: no-cache\r\n" ..
             "Connection: keep-alive\r\nAccess-Control-Allow-Origin: *\r\n\r\n" ..
-            "retry: 1000\n\nevent: build\ndata: " .. BUILD .. "\n\nevent: config\ndata: " .. cfg_json ..
+            "retry: 1000\n\nevent: build\ndata: " .. BUILD .. "\n\nevent: config\ndata: " .. cfg_for(c.sid) ..
             "\n\ndata: " .. last_json .. "\n\n"
   elseif path == "/" or path == "/index.html" then
     if not html_out then html_out = HTML:gsub("__BUILD__", BUILD) end
@@ -679,7 +682,7 @@ local function tick()
       end
     end
     if alive and c.sse then
-      if cfg_changed then c.out = c.out .. "event: config\ndata: " .. cfg_json .. "\n\n" end
+      if c.sid and src_changed[c.sid] then c.out = c.out .. "event: config\ndata: " .. cfg_for(c.sid) .. "\n\n" end
       if changed then
         c.out = c.out .. "data: " .. json .. "\n\n"; c.ping = t
       elseif t - c.ping > 2 then
@@ -692,7 +695,7 @@ local function tick()
     if alive then keep[#keep + 1] = c else ws2.closesocket(c.s) end
   end
   conns = keep
-  cfg_changed = false
+  if next(src_changed) then src_changed = {} end
 end
 
 local tick_error_logged = false
@@ -705,19 +708,64 @@ local function safe_tick()
 end
 
 ------------------------------------------------------------------------------
--- OBS-Skript-Schnittstelle
+-- OBS-Quelle "Controller Overlay"
+-- Die Quelle enthält eine interne Browser-Quelle, die die Overlay-Seite dieses
+-- Skripts anzeigt. Jede Quelle hat ihre eigenen Einstellungen; der Server
+-- liefert sie der Seite über die Kennung in der URL (?sid=…).
 ------------------------------------------------------------------------------
-function script_description()
-  return [[<h3>Controller Overlay (Xbox, PS5 &amp; Switch 2)</h3>
-<p>Zeigt den Controller mit allen Eingaben in Echtzeit – auch während ein Spiel im Vordergrund ist.</p>
-<p><b>Einrichtung:</b> Neue <i>Browser</i>-Quelle anlegen, „Lokale Datei“ nicht anhaken,
-URL <b>http://localhost:8790</b> eintragen (bzw. den unten eingestellten Port), Größe z.&nbsp;B. 1600 × 1120.</p>
-<p>Aussehen einfach unten einstellen – Änderungen wirken sofort.</p>]]
+local SRC_W, SRC_H = 1600, 1120
+local sources = {}            -- sid -> Daten der Quelle
+local sid_counter = 0
+
+local function overlay_url(sid)
+  return "http://localhost:" .. (current_port or DEFAULT_PORT) .. "/?sid=" .. sid
 end
 
-function script_properties()
-  local props = obs.obs_properties_create()
+local function source_cfg_json(settings)
+  local layout = obs.obs_data_get_string(settings, "layout")
+  if layout ~= "xbox" and layout ~= "ps" and layout ~= "ns" then layout = "auto" end
+  local theme = obs.obs_data_get_string(settings, "theme")
+  if theme ~= "white" then theme = "carbon" end
+  local c = obs.obs_data_get_int(settings, "accent")
+  local hex = string.format("#%02x%02x%02x", band(c, 0xFF), band(rshift(c, 8), 0xFF), band(rshift(c, 16), 0xFF))
+  local hint = obs.obs_data_get_bool(settings, "hint")
+  local pad = obs.obs_data_get_string(settings, "pad")
+  if not pad or pad == "" or not pad:match("^[%w]+$") then pad = "auto" end
+  local opacity = obs.obs_data_get_int(settings, "opacity")
+  if opacity < 10 or opacity > 100 then opacity = 100 end
+  local facecolors = obs.obs_data_get_bool(settings, "facecolors")
+  return string.format('{"pad":"%s","layout":"%s","theme":"%s","accent":"%s","hint":%s,"opacity":%d,"facecolors":%s}',
+    pad, layout, theme, hex, hint and "true" or "false", opacity, facecolors and "true" or "false")
+end
 
+local function browser_settings(sid)
+  local s = obs.obs_data_create()
+  obs.obs_data_set_bool(s, "is_local_file", false)
+  obs.obs_data_set_string(s, "url", overlay_url(sid))
+  obs.obs_data_set_int(s, "width", SRC_W)
+  obs.obs_data_set_int(s, "height", SRC_H)
+  obs.obs_data_set_bool(s, "fps_custom", true)
+  obs.obs_data_set_int(s, "fps", 60)
+  obs.obs_data_set_bool(s, "shutdown", false)
+  obs.obs_data_set_bool(s, "restart_when_active", false)
+  obs.obs_data_set_bool(s, "reroute_audio", false)
+  obs.obs_data_set_string(s, "css", "")
+  return s
+end
+
+-- Nach einem Portwechsel alle Quellen auf die neue Adresse umstellen
+local function retarget_sources()
+  for sid, d in pairs(sources) do
+    if d.browser then
+      local s = obs.obs_data_create()
+      obs.obs_data_set_string(s, "url", overlay_url(sid))
+      obs.obs_source_update(d.browser, s)
+      obs.obs_data_release(s)
+    end
+  end
+end
+
+local function add_source_properties(props, settings)
   -- Controller-Auswahl: alle gerade verbundenen Controller
   local padp = obs.obs_properties_add_list(props, "pad", "Controller",
     obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_STRING)
@@ -731,8 +779,9 @@ function script_properties()
     obs.obs_property_list_add_string(padp, label, p.id)
     seen[p.id] = true
   end
-  if cfg.pad ~= "auto" and not seen[cfg.pad] then
-    obs.obs_property_list_add_string(padp, "Gewählter Controller (gerade nicht verbunden)", cfg.pad)
+  local chosen = settings and obs.obs_data_get_string(settings, "pad") or "auto"
+  if chosen ~= "" and chosen ~= "auto" and not seen[chosen] then
+    obs.obs_property_list_add_string(padp, "Gewählter Controller (gerade nicht verbunden)", chosen)
   end
   obs.obs_properties_add_button(props, "refresh", "Controller-Liste aktualisieren",
     function() return true end)
@@ -748,52 +797,122 @@ function script_properties()
   obs.obs_property_list_add_string(list, "Dunkel", "carbon")
   obs.obs_property_list_add_string(list, "Hell", "white")
   obs.obs_properties_add_color(props, "accent", "Leuchtfarbe")
+  obs.obs_properties_add_bool(props, "facecolors",
+    "Farbige Tasten (A/B/X/Y bzw. PS-Symbole) in ihrer Originalfarbe leuchten lassen")
   local op = obs.obs_properties_add_int_slider(props, "opacity", "Deckkraft", 10, 100, 5)
   obs.obs_property_int_set_suffix(op, " %")
   obs.obs_properties_add_bool(props, "hint", "Hinweis anzeigen, wenn kein Controller verbunden ist")
-  obs.obs_properties_add_int(props, "port", "Port", 1024, 65535, 1)
-  return props
 end
 
-function script_defaults(settings)
+local overlay_source = {
+  id = "controller_overlay_source",
+  type = obs.OBS_SOURCE_TYPE_INPUT,
+  output_flags = bit.bor(obs.OBS_SOURCE_VIDEO, obs.OBS_SOURCE_CUSTOM_DRAW),
+}
+
+overlay_source.get_name = function() return "Controller Overlay" end
+
+overlay_source.get_defaults = function(settings)
   obs.obs_data_set_default_string(settings, "pad", "auto")
   obs.obs_data_set_default_string(settings, "layout", "auto")
   obs.obs_data_set_default_string(settings, "theme", "carbon")
   obs.obs_data_set_default_int(settings, "accent", 0xFFFFE500)   -- #00e5ff (OBS speichert 0xAABBGGRR)
   obs.obs_data_set_default_bool(settings, "hint", true)
   obs.obs_data_set_default_int(settings, "opacity", 100)
+  obs.obs_data_set_default_bool(settings, "facecolors", false)
+end
+
+overlay_source.create = function(settings, source)
+  sid_counter = sid_counter + 1
+  local d = { source = source, sid = "s" .. BUILD .. sid_counter, showing = 0, active = 0 }
+  src_cfg[d.sid] = source_cfg_json(settings)
+  sources[d.sid] = d
+  local bs = browser_settings(d.sid)
+  d.browser = obs.obs_source_create_private("browser_source", "Controller Overlay (Browser)", bs)
+  obs.obs_data_release(bs)
+  if not d.browser then log("Browser-Quelle konnte nicht angelegt werden – ist das Browser-Plugin von OBS installiert?") end
+  return d
+end
+
+overlay_source.destroy = function(d)
+  if not d then return end
+  sources[d.sid] = nil
+  src_cfg[d.sid] = nil
+  if d.browser then
+    for _ = 1, d.showing do obs.obs_source_dec_showing(d.browser) end
+    for _ = 1, d.active do obs.obs_source_dec_active(d.browser) end
+    obs.obs_source_release(d.browser)
+    d.browser = nil
+  end
+end
+
+overlay_source.update = function(d, settings)
+  local json = source_cfg_json(settings)
+  if json ~= src_cfg[d.sid] then src_cfg[d.sid] = json; src_changed[d.sid] = true end
+end
+
+overlay_source.get_properties = function(d)
+  local props = obs.obs_properties_create()
+  local settings = d and d.source and obs.obs_source_get_settings(d.source)
+  add_source_properties(props, settings)
+  if settings then obs.obs_data_release(settings) end
+  return props
+end
+
+overlay_source.get_width = function() return SRC_W end
+overlay_source.get_height = function() return SRC_H end
+
+overlay_source.video_render = function(d, effect)
+  if d and d.browser then obs.obs_source_video_render(d.browser) end
+end
+
+overlay_source.show = function(d)
+  if d and d.browser then obs.obs_source_inc_showing(d.browser); d.showing = d.showing + 1 end
+end
+overlay_source.hide = function(d)
+  if d and d.browser and d.showing > 0 then obs.obs_source_dec_showing(d.browser); d.showing = d.showing - 1 end
+end
+overlay_source.activate = function(d)
+  if d and d.browser then obs.obs_source_inc_active(d.browser); d.active = d.active + 1 end
+end
+overlay_source.deactivate = function(d)
+  if d and d.browser and d.active > 0 then obs.obs_source_dec_active(d.browser); d.active = d.active - 1 end
+end
+
+------------------------------------------------------------------------------
+-- OBS-Skript-Schnittstelle
+------------------------------------------------------------------------------
+function script_description()
+  return [[<h3>Controller Overlay (Xbox, PS5 &amp; Switch 2)</h3>
+<p>Zeigt den Controller mit allen Eingaben in Echtzeit – auch während ein Spiel im Vordergrund ist.</p>
+<p><b>Einrichtung:</b> In der Szene bei <i>Quellen</i> auf <b>+</b> klicken und <b>Controller Overlay</b> wählen.
+Aussehen und Controller stellst du in den Eigenschaften der Quelle ein – Änderungen wirken sofort.</p>
+<p>Den Port musst du nur ändern, wenn das Skript-Protokoll meldet, dass er belegt ist.</p>]]
+end
+
+function script_properties()
+  local props = obs.obs_properties_create()
+  obs.obs_properties_add_int(props, "port", "Port", 1024, 65535, 1)
+  return props
+end
+
+function script_defaults(settings)
   obs.obs_data_set_default_int(settings, "port", DEFAULT_PORT)
 end
 
-local function read_cfg(settings)
-  local layout = obs.obs_data_get_string(settings, "layout")
-  if layout ~= "xbox" and layout ~= "ps" and layout ~= "ns" then layout = "auto" end
-  local theme = obs.obs_data_get_string(settings, "theme")
-  if theme ~= "white" then theme = "carbon" end
-  local c = obs.obs_data_get_int(settings, "accent")
-  local hex = string.format("#%02x%02x%02x", band(c, 0xFF), band(rshift(c, 8), 0xFF), band(rshift(c, 16), 0xFF))
-  local hint = obs.obs_data_get_bool(settings, "hint")
-  local pad = obs.obs_data_get_string(settings, "pad")
-  if not pad or pad == "" or not pad:match("^[%w]+$") then pad = "auto" end
-  local opacity = obs.obs_data_get_int(settings, "opacity")
-  if opacity < 10 or opacity > 100 then opacity = 100 end
-  cfg.layout, cfg.theme, cfg.accent, cfg.hint, cfg.pad, cfg.opacity = layout, theme, hex, hint, pad, opacity
-  local json = string.format('{"pad":"%s","layout":"%s","theme":"%s","accent":"%s","hint":%s,"opacity":%d}',
-    pad, layout, theme, hex, hint and "true" or "false", opacity)
-  if json ~= cfg_json then cfg_json = json; cfg_changed = true end
-end
-
 function script_update(settings)
-  read_cfg(settings)
   local port = obs.obs_data_get_int(settings, "port")
-  if port ~= current_port then start_server(port) end
+  if port ~= current_port then
+    start_server(port)
+    retarget_sources()
+  end
 end
 
 function script_load(settings)
   local x = init_xinput()
   if x then log("XInput geladen: " .. x) else log("XInput konnte nicht geladen werden!") end
-  read_cfg(settings)
   start_server(obs.obs_data_get_int(settings, "port"))
+  obs.obs_register_source(overlay_source)
   obs.timer_add(safe_tick, 10)
 end
 
@@ -850,17 +969,20 @@ HTML = [=====[<!doctype html>
   /* Xbox-Tasten */
   .face.a .lbl { fill: var(--a); } .face.b .lbl { fill: var(--b); }
   .face.x .lbl { fill: var(--x); } .face.y .lbl { fill: var(--y); }
-  .face.a.on .part { fill: var(--a); } .face.b.on .part { fill: var(--b); }
-  .face.x.on .part { fill: var(--x); } .face.y.on .part { fill: var(--y); }
-  .face.on .lbl { fill: #fff; }
+  /* Gedrückt: Leuchtfarbe wie alle Tasten; mit data-face="orig" in der Farbe des Controllers */
+  .face.on .lbl { fill: #0b0b0b; }
+  :root[data-face="orig"] .face.a.on .part { fill: var(--a); } :root[data-face="orig"] .face.b.on .part { fill: var(--b); }
+  :root[data-face="orig"] .face.x.on .part { fill: var(--x); } :root[data-face="orig"] .face.y.on .part { fill: var(--y); }
+  :root[data-face="orig"] .face.on .lbl { fill: #fff; }
 
   /* PS-Tasten */
   .sym { fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
   .face.tri .sym { stroke: var(--tri); } .face.cir .sym { stroke: var(--cir); }
   .face.crs .sym { stroke: var(--crs); } .face.sqr .sym { stroke: var(--sqr); }
-  .face.tri.on .part { fill: var(--tri); } .face.cir.on .part { fill: var(--cir); }
-  .face.crs.on .part { fill: var(--crs); } .face.sqr.on .part { fill: var(--sqr); }
-  .face.on .sym { stroke: #fff; }
+  .face.on .sym { stroke: #0b0b0b; }
+  :root[data-face="orig"] .face.tri.on .part { fill: var(--tri); } :root[data-face="orig"] .face.cir.on .part { fill: var(--cir); }
+  :root[data-face="orig"] .face.crs.on .part { fill: var(--crs); } :root[data-face="orig"] .face.sqr.on .part { fill: var(--sqr); }
+  :root[data-face="orig"] .face.on .sym { stroke: #fff; }
 
   /* Switch-2-Tasten */
   .face.n .lbl { fill: var(--label); }
@@ -1163,6 +1285,7 @@ HTML = [=====[<!doctype html>
   if (q.get('theme') === 'white') root.dataset.theme = 'white';
   if (hex(q.get('accent'))) root.style.setProperty('--accent', hex(q.get('accent')));
   if (hex(q.get('bg')))     document.body.style.background = hex(q.get('bg'));
+  if (q.get('face') === 'orig') root.dataset.face = 'orig';
   const padIdx = q.has('pad') ? parseInt(q.get('pad'), 10) : null;
   let showHint = q.get('hint') !== '0';
   let layoutPref = q.get('layout') || 'auto';
@@ -1174,8 +1297,9 @@ HTML = [=====[<!doctype html>
   const STICK_RANGE = 18;
   const BTN_THRESHOLD = 0.1;
 
-  // Einstellungen aus dem OBS-Skriptfenster (URL-Parameter haben Vorrang)
+  // Einstellungen aus den Quellen-Eigenschaften (URL-Parameter haben Vorrang)
   function applyConfig(c) {
+    if (!q.has('face')) { if (c.facecolors) root.dataset.face = 'orig'; else delete root.dataset.face; }
     if (!q.has('theme')) { if (c.theme === 'white') root.dataset.theme = 'white'; else delete root.dataset.theme; }
     if (!q.has('accent') && /^#[0-9a-f]{6}$/i.test(c.accent || '')) root.style.setProperty('--accent', c.accent);
     if (!q.has('hint')) showHint = c.hint !== false;
@@ -1214,7 +1338,8 @@ HTML = [=====[<!doctype html>
   // Daten vom OBS-Skript (funktioniert auch, wenn das Spiel im Vordergrund ist)
   let remote = null, remoteOK = false;
   if (location.protocol.startsWith('http')) {
-    const es = new EventSource('/events');
+    const sid = /^\w+$/.test(q.get('sid') || '') ? q.get('sid') : '';
+    const es = new EventSource('/events' + (sid ? '?sid=' + sid : ''));
     es.onmessage = e => { try { remote = JSON.parse(e.data); remoteOK = true; trackActivity(remote.pads || []); } catch (_) {} };
     const BUILD = '__BUILD__';
     es.addEventListener('build', e => { if (e.data !== BUILD) location.reload(); });
