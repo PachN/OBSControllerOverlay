@@ -42,6 +42,10 @@
   .tag { align-self: flex-start; display: inline-block; font-size: 9pt; font-weight: 600; color: var(--brand); background: var(--brand-soft); padding: 2pt 8pt; border-radius: 10pt; margin-bottom: 12pt; }
   .hero { background: linear-gradient(160deg, #1b2a3a, #0e1620); border-radius: 10pt; padding: 18pt 26pt; margin: 14pt 0 16pt; }
   .hero img { width: 78%; display: block; margin: 0 auto; }
+  .origin { border: 1px solid var(--line); border-radius: 6pt; padding: 9pt 12pt; margin-top: 4pt; }
+  .origin p { margin: 0 0 5pt; }
+  .origin .url { font-family: Consolas, "Cascadia Mono", monospace; font-size: 11.5pt; font-weight: 700; color: var(--brand); }
+  .origin .small { margin: 0; font-size: 9pt; color: var(--muted); }
   .need { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10pt; margin-top: 4pt; }
   .need div { border: 1px solid var(--line); border-radius: 6pt; padding: 8pt 10pt; font-size: 9.5pt; }
   .need b { display: block; font-size: 10pt; margin-bottom: 2pt; }
@@ -162,17 +166,16 @@
 <section class="page cover">
   <span class="tag">Einrichtungsanleitung</span>
   <h1>Controller Overlay für OBS</h1>
-  <p class="lead">Zeigt deinen Xbox-, PS5- oder Switch-2-Controller im Stream und hebt jede Taste in Echtzeit hervor, solange du sie drückst. Es funktioniert auch, während das Spiel im Vordergrund läuft.</p>
+  <p class="lead">Zeigt deinen Xbox-, PS5- oder Switch-2-Controller im Stream und hebt jede Taste in Echtzeit hervor, solange du sie drückst.</p>
 
   <div class="hero"><img src="{{HERO}}" alt="Overlay mit hervorgehobenen Tasten"></div>
 
-  <h3>Das brauchst du</h3>
-  <div class="need">
-    <div><b>Windows-PC</b>Windows 10 oder 11</div>
-    <div><b>OBS Studio</b>eine aktuelle Version; Skripte sind bereits eingebaut</div>
-    <div><b>Controller</b>Xbox-Controller, PS5 DualSense (USB oder Bluetooth) oder Switch 2 Pro Controller (USB-Kabel)</div>
+  <h3>Woher das Overlay stammt</h3>
+  <div class="origin">
+    <p>Das Controller Overlay ist ein Projekt von <b>PachN</b> und wird auf GitHub veröffentlicht. Dort findest du den Quellcode, neue Versionen und diese Anleitung:</p>
+    <p class="url">github.com/PachN/OBSControllerOverlay</p>
+    <p class="small">Lade die ZIP-Datei am besten nur von dort herunter. Dann weißt du sicher, dass sie unverändert ist.</p>
   </div>
-  <p style="margin-top:10pt">Dazu die Datei <code>ControllerOverlay.zip</code>. Keine Installation, kein Zusatzprogramm, keine Startparameter.</p>
 
   <div class="toc">
     <span><b>1</b> ZIP entpacken</span>
