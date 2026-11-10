@@ -24,14 +24,6 @@ Das Overlay lässt sich weiterhin als Browser-Quelle einbinden, mit der URL `htt
 layout=auto|xbox|ps|ns  theme=carbon|white  accent=HEX  hint=0  bg=HEX  pad=N  dz=0.12  opacity=10..100  face=orig
 ```
 
-## Anleitung neu erzeugen
-
-Die PDF wird aus `guide/template.html` gebaut. Die Vorschaubilder des Controllers stammen direkt aus dem SVG im Lua-Skript. Zum Bauen brauchst du Node.js und Microsoft Edge.
-
-```powershell
-.\guide\build-pdf.ps1
-```
-
 ## Bekannte Einschränkungen
 
 - Die Share-Taste des Xbox-Controllers lässt sich über XInput nicht auslesen.
