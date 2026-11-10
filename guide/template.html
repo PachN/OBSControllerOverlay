@@ -187,7 +187,7 @@
 <section class="page">
   <div class="step">
     <h2><span class="num">1</span>ZIP-Datei entpacken</h2>
-    <p>Du hast die Datei <code>ControllerOverlay.zip</code> bekommen. Darin stecken zwei Dateien: das Overlay-Skript <code>xbox-controller-overlay.lua</code> und diese Anleitung. Bevor OBS das Skript nutzen kann, musst du die ZIP-Datei entpacken.</p>
+    <p>Du hast die Datei <code>ControllerOverlay.zip</code> bekommen. Darin stecken zwei Dateien: das Overlay-Skript <code>controller-overlay.lua</code> und diese Anleitung. Bevor OBS das Skript nutzen kann, musst du die ZIP-Datei entpacken.</p>
 
     <div class="warn"><b>Wichtig: nicht direkt aus der ZIP-Datei öffnen</b>Windows zeigt den Inhalt einer ZIP-Datei wie einen normalen Ordner an. Lädst du das Skript von dort in OBS, funktioniert es nicht dauerhaft.</div>
 
@@ -262,13 +262,13 @@
             <div class="addr">Dokumente › OBS › ControllerOverlay</div>
             <div class="files" style="padding:6pt 8pt">
               <div class="file"><span class="pdf"></span>Controller-Overlay-Anleitung.pdf</div>
-              <div class="file hl"><span class="luaico"></span>xbox-controller-overlay.lua <span class="m">5</span></div>
+              <div class="file hl"><span class="luaico"></span>controller-overlay.lua <span class="m">5</span></div>
             </div>
           </div>
         </figure>
         <div>
-          <p>Danach öffnet sich der neue Ordner mit den zwei Dateien. Die Datei <code>xbox-controller-overlay.lua</code> <span class="m">5</span> brauchst du im nächsten Schritt.</p>
-          <p style="color:var(--muted); font-size:9.5pt">Zeigt Windows die Datei nur als „xbox-controller-overlay“ ohne „.lua“? Das ist normal, Windows blendet Dateiendungen oft aus.</p>
+          <p>Danach öffnet sich der neue Ordner mit den zwei Dateien. Die Datei <code>controller-overlay.lua</code> <span class="m">5</span> brauchst du im nächsten Schritt.</p>
+          <p style="color:var(--muted); font-size:9.5pt">Zeigt Windows die Datei nur als „controller-overlay“ ohne „.lua“? Das ist normal, Windows blendet Dateiendungen oft aus.</p>
           <p style="color:var(--muted); font-size:9.5pt">Die ZIP-Datei im Ordner Downloads kannst du danach löschen.</p>
         </div>
       </div>
@@ -298,7 +298,7 @@
       <figcaption>Das Menü „Werkzeuge“ in der Menüleiste von OBS. Die Einträge können je nach installierten Plugins anders aussehen.</figcaption>
     </figure>
 
-    <p style="margin-top:10pt">Im Fenster <b>Skripte</b> klickst du unten links auf <b>+</b> <span class="m">3</span> und wählst die Datei <code>xbox-controller-overlay.lua</code> aus dem Ordner von Schritt 1, also zum Beispiel <b>Dokumente → OBS → ControllerOverlay</b>. Danach erscheint sie in der Liste <span class="m">4</span>, und rechts siehst du die Beschreibung <span class="m">5</span>. Hier musst du nichts einstellen; das Aussehen legst du später direkt an der Quelle fest.</p>
+    <p style="margin-top:10pt">Im Fenster <b>Skripte</b> klickst du unten links auf <b>+</b> <span class="m">3</span> und wählst die Datei <code>controller-overlay.lua</code> aus dem Ordner von Schritt 1, also zum Beispiel <b>Dokumente → OBS → ControllerOverlay</b>. Danach erscheint sie in der Liste <span class="m">4</span>, und rechts siehst du die Beschreibung <span class="m">5</span>. Hier musst du nichts einstellen; das Aussehen legst du später direkt an der Quelle fest.</p>
 
     <figure>
       <div class="win">
@@ -308,7 +308,7 @@
           <div class="row">
             <div style="width:150pt">
               <div style="color:#b9bec9; margin-bottom:3pt">Geladene Skripte</div>
-              <div class="list" style="min-height:110pt"><div class="sel">xbox-controller-overlay.lua <span class="m" style="margin-left:3pt">4</span></div></div>
+              <div class="list" style="min-height:110pt"><div class="sel">controller-overlay.lua <span class="m" style="margin-left:3pt">4</span></div></div>
               <div style="display:flex; gap:4pt; margin-top:5pt; align-items:center">
                 <span class="btnx">+</span><span class="m">3</span><span class="btnx">−</span><span class="btnx">⟳</span>
               </div>
@@ -539,6 +539,7 @@
 
   <div class="faq"><h3>Nach einem Update des Skripts</h3>
     <p>Entpacke die neue ZIP-Datei wie in Schritt 1 in <b>denselben Ordner</b> wie bisher und bestätige, dass die vorhandenen Dateien ersetzt werden. Klicke dann unter <b>Werkzeuge → Skripte</b> auf <b>⟳</b> (Skripte neu laden). Das Overlay aktualisiert sich danach von selbst.</p>
+    <p>Steht in der Skriptliste noch <code>xbox-controller-overlay.lua</code> (alter Name), entferne den Eintrag mit <b>−</b> und füge <code>controller-overlay.lua</code> mit <b>+</b> hinzu. Deine Overlay-Quellen bleiben dabei erhalten.</p>
     <p>Hast du das Overlay noch aus einer älteren Version als <b>Browser</b>-Quelle mit <code>http://localhost:8790</code> eingebunden, ersetze sie durch die Quelle <b>Controller Overlay</b>. Die Browser-Quelle funktioniert zwar weiter, zeigt aber nur die Standardeinstellungen.</p></div>
 
   <div class="footer">Hinweis: Die Share-Taste des Xbox-Controllers lässt sich nicht auslesen; alle anderen Tasten werden angezeigt. Die Abbildungen der OBS-Fenster sind vereinfacht nachgezeichnet.</div>
